@@ -13,7 +13,7 @@ export function DashboardHeader() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              FamilyMind Dashboard
+              FamilyMind Dashboard <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">v2.1</span>
             </h1>
             <p className="text-sm text-gray-500">
               Oversigt over medlemmer og økonomi
