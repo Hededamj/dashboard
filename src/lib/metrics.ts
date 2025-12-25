@@ -258,7 +258,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
  * Fetches ALL subscriptions once, then calculates monthly stats
  */
 export async function getGrowthTrends(): Promise<TrendData[]> {
-  return withCache("growth-trends", async () => {
+  return withCache("growth-trends-v2", async () => {
     // Fetch ALL subscriptions (no limit)
     console.log('[Trends] Fetching all subscriptions...');
     const allSubs = await stripe.subscriptions.list({
