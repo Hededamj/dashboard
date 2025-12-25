@@ -149,6 +149,11 @@ export default function DashboardPage() {
 
         {/* Recent Activity */}
         <RecentActivityTable data={activity} />
+
+        {/* Version Footer */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          Dashboard v2.1 - Build {new Date().toISOString().split('T')[0]} 22:30
+        </div>
       </main>
     </div>
   );
