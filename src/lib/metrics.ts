@@ -255,57 +255,62 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
 /**
  * Get growth trends for last 12 months
+ * Uses subscription data instead of events (events only retained for 30 days)
  */
 export async function getGrowthTrends(): Promise<TrendData[]> {
   return withCache("growth-trends", async () => {
+    // Fetch ALL subscriptions (active and canceled)
+    const allSubs = await stripe.subscriptions.list({
+      limit: 100,
+      status: "all",
+    });
+
+    let allSubscriptions = allSubs.data;
+    let hasMore = allSubs.has_more;
+
+    // Paginate to get all subscriptions
+    while (hasMore && allSubscriptions.length < 5000) {
+      const nextPage = await stripe.subscriptions.list({
+        limit: 100,
+        status: "all",
+        starting_after: allSubscriptions[allSubscriptions.length - 1].id,
+      });
+
+      allSubscriptions = [...allSubscriptions, ...nextPage.data];
+      hasMore = nextPage.has_more;
+    }
+
     const trends: TrendData[] = [];
 
+    // Calculate trends for last 12 months
     for (let i = 11; i >= 0; i--) {
       const month = subMonths(new Date(), i);
-      const startTimestamp = Math.floor(startOfMonth(month).getTime() / 1000);
-      const endTimestamp = Math.floor(endOfMonth(month).getTime() / 1000);
+      const monthStart = startOfMonth(month);
+      const monthEnd = endOfMonth(month);
+      const startTimestamp = Math.floor(monthStart.getTime() / 1000);
+      const endTimestamp = Math.floor(monthEnd.getTime() / 1000);
 
-      // Get signups for this month
-      const signupEvents = await stripe.events.list({
-        type: "customer.subscription.created",
-        created: {
-          gte: startTimestamp,
-          lte: endTimestamp,
-        },
-        limit: 100,
+      // Count subscriptions that were active during this month
+      const activeInMonth = allSubscriptions.filter((sub) => {
+        const created = sub.created;
+        const canceled = sub.canceled_at || null;
+
+        // Subscription was created before month end
+        const wasCreated = created <= endTimestamp;
+
+        // Subscription was either not canceled, or canceled after month start
+        const stillActive = !canceled || canceled >= startTimestamp;
+
+        return wasCreated && stillActive;
       });
 
-      // Get cancellations for this month
-      const cancelEvents = await stripe.events.list({
-        type: "customer.subscription.deleted",
-        created: {
-          gte: startTimestamp,
-          lte: endTimestamp,
-        },
-        limit: 100,
-      });
-
-      const netGrowth = signupEvents.data.length - cancelEvents.data.length;
-
-      // Calculate cumulative members
-      const previousMembers = i === 11 ? 0 : trends[trends.length - 1]?.members || 0;
-      const currentMembers = previousMembers + netGrowth;
+      const memberCount = activeInMonth.length;
 
       trends.push({
         month: format(month, "MMM yyyy", { locale: da }),
-        members: Math.max(0, currentMembers),
-        revenue: Math.max(0, currentMembers) * MONTHLY_PRICE,
+        members: memberCount,
+        revenue: memberCount * MONTHLY_PRICE,
       });
-    }
-
-    // Normalize to current member count
-    const currentActualMembers = await getCurrentMembers();
-    const lastTrendMembers = trends[trends.length - 1]?.members || 0;
-
-    if (lastTrendMembers > 0) {
-      const diff = currentActualMembers - lastTrendMembers;
-      trends[trends.length - 1].members = currentActualMembers;
-      trends[trends.length - 1].revenue = currentActualMembers * MONTHLY_PRICE;
     }
 
     return trends;
