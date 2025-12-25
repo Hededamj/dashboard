@@ -255,11 +255,12 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
 /**
  * Get growth trends for last 12 months
- * Uses subscription data instead of events (events only retained for 30 days)
+ * Fetches ALL subscriptions once, then calculates monthly stats
  */
 export async function getGrowthTrends(): Promise<TrendData[]> {
   return withCache("growth-trends", async () => {
-    // Fetch ALL subscriptions (active and canceled)
+    // Fetch ALL subscriptions (no limit)
+    console.log('[Trends] Fetching all subscriptions...');
     const allSubs = await stripe.subscriptions.list({
       limit: 100,
       status: "all",
@@ -267,9 +268,10 @@ export async function getGrowthTrends(): Promise<TrendData[]> {
 
     let allSubscriptions = allSubs.data;
     let hasMore = allSubs.has_more;
+    let pageCount = 1;
 
-    // Paginate to get all subscriptions
-    while (hasMore && allSubscriptions.length < 5000) {
+    // Paginate to get ALL subscriptions (removed 5000 limit)
+    while (hasMore) {
       const nextPage = await stripe.subscriptions.list({
         limit: 100,
         status: "all",
@@ -278,7 +280,15 @@ export async function getGrowthTrends(): Promise<TrendData[]> {
 
       allSubscriptions = [...allSubscriptions, ...nextPage.data];
       hasMore = nextPage.has_more;
+      pageCount++;
+
+      // Log progress every 10 pages
+      if (pageCount % 10 === 0) {
+        console.log(`[Trends] Fetched ${allSubscriptions.length} subscriptions...`);
+      }
     }
+
+    console.log(`[Trends] Total subscriptions fetched: ${allSubscriptions.length}`);
 
     const trends: TrendData[] = [];
 
@@ -313,6 +323,7 @@ export async function getGrowthTrends(): Promise<TrendData[]> {
       });
     }
 
+    console.log('[Trends] Calculated trends for 12 months');
     return trends;
   }, 10 * 60 * 1000); // Cache for 10 minutes (longer because this is expensive)
 }
