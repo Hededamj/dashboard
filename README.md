@@ -248,3 +248,4 @@ Efter deployment kan du overveje:
 ---
 
 **Bygget med ❤️ for FamilyMind**
+# Updated 26. dec 2025 17:19:39
