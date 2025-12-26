@@ -10,15 +10,18 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Only allow whitelisted email
-      const allowedEmail = process.env.ALLOWED_EMAIL;
+      // Only allow whitelisted emails (comma-separated)
+      const allowedEmailsStr = process.env.ALLOWED_EMAIL;
 
-      if (!allowedEmail) {
+      if (!allowedEmailsStr) {
         console.error("ALLOWED_EMAIL environment variable is not set");
         return false;
       }
 
-      if (user.email !== allowedEmail) {
+      // Split by comma and trim whitespace
+      const allowedEmails = allowedEmailsStr.split(',').map(email => email.trim());
+
+      if (!user.email || !allowedEmails.includes(user.email)) {
         console.log(`Unauthorized login attempt from: ${user.email}`);
         return false;
       }
