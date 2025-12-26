@@ -108,20 +108,19 @@ export default function DashboardPage() {
         {/* Metric Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <MetricCard
-            title="MRR"
+            title="MRR (4 uger)"
             value={formatCurrency(metrics.mrr)}
             icon={DollarSign}
             description="Månedlig tilbagevendende indtægt"
-            trend={metrics.growthRate > 0 ? "up" : metrics.growthRate < 0 ? "down" : "neutral"}
-            change={metrics.growthRate}
+            comparison={metrics.mrrComparison}
           />
 
           <MetricCard
-            title="Aktive Medlemmer"
-            value={metrics.currentMembers}
+            title="Nye Medlemmer (4 uger)"
+            value={metrics.newSignupsComparison?.current || 0}
             icon={Users}
-            description={`+${metrics.newSignupsThisMonth} denne måned`}
-            trend={metrics.newSignupsThisMonth > metrics.cancellationsThisMonth ? "up" : "down"}
+            description={`${metrics.newSignupsThisMonth} denne måned`}
+            comparison={metrics.newSignupsComparison}
           />
 
           <MetricCard

@@ -1,3 +1,10 @@
+export interface MetricComparison {
+  current: number;
+  previous: number;
+  change: number; // Percentage change
+  trend: "up" | "down" | "neutral";
+}
+
 export interface DashboardMetrics {
   currentMembers: number;
   mrr: number;
@@ -6,6 +13,10 @@ export interface DashboardMetrics {
   cancellationsThisMonth: number;
   churnRate: number;
   growthRate: number;
+  // Period comparisons (optional for backward compatibility)
+  newSignupsComparison?: MetricComparison;
+  mrrComparison?: MetricComparison;
+  revenueComparison?: MetricComparison;
 }
 
 export interface TrendData {

@@ -1,10 +1,31 @@
 import { stripe } from "./stripe";
 import { withCache } from "./cache";
-import type { DashboardMetrics, TrendData, ActivityEvent } from "@/types";
-import { startOfMonth, subMonths, format, endOfMonth } from "date-fns";
+import type { DashboardMetrics, TrendData, ActivityEvent, MetricComparison } from "@/types";
+import { startOfMonth, subMonths, format, endOfMonth, subDays, startOfDay } from "date-fns";
 import { da } from "date-fns/locale";
 
 const MONTHLY_PRICE = 149; // DKK
+
+/**
+ * Calculate percentage change between current and previous values
+ */
+function calculateChange(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return ((current - previous) / previous) * 100;
+}
+
+/**
+ * Create metric comparison object
+ */
+function createComparison(current: number, previous: number): MetricComparison {
+  const change = calculateChange(current, previous);
+  return {
+    current,
+    previous,
+    change,
+    trend: change > 0 ? "up" : change < 0 ? "down" : "neutral",
+  };
+}
 
 /**
  * Get current active members count
@@ -119,6 +140,41 @@ export async function getNewSignupsThisMonth(): Promise<number> {
 }
 
 /**
+ * Get signups for a specific date range (using subscription created dates)
+ */
+async function getSignupsForPeriod(startDate: Date, endDate: Date): Promise<number> {
+  const startTimestamp = Math.floor(startDate.getTime() / 1000);
+  const endTimestamp = Math.floor(endDate.getTime() / 1000);
+
+  const subs = await stripe.subscriptions.list({
+    created: {
+      gte: startTimestamp,
+      lte: endTimestamp,
+    },
+    limit: 100,
+  });
+
+  let allSubs = subs.data;
+  let hasMore = subs.has_more;
+
+  while (hasMore && allSubs.length < 1000) {
+    const nextPage = await stripe.subscriptions.list({
+      created: {
+        gte: startTimestamp,
+        lte: endTimestamp,
+      },
+      limit: 100,
+      starting_after: allSubs[allSubs.length - 1].id,
+    });
+
+    allSubs = [...allSubs, ...nextPage.data];
+    hasMore = nextPage.has_more;
+  }
+
+  return allSubs.length;
+}
+
+/**
  * Get cancellations this month
  */
 export async function getCancellationsThisMonth(): Promise<number> {
@@ -219,7 +275,7 @@ export async function calculateTotalRevenue(): Promise<number> {
 }
 
 /**
- * Get all dashboard metrics
+ * Get all dashboard metrics with 4-week period comparisons
  */
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   return withCache("dashboard-metrics", async () => {
@@ -241,6 +297,20 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       calculateGrowthRate(),
     ]);
 
+    // Calculate 4-week period comparisons
+    const now = new Date();
+    const fourWeeksAgo = subDays(now, 28);
+    const eightWeeksAgo = subDays(now, 56);
+
+    const [currentPeriodSignups, previousPeriodSignups] = await Promise.all([
+      getSignupsForPeriod(fourWeeksAgo, now),
+      getSignupsForPeriod(eightWeeksAgo, fourWeeksAgo),
+    ]);
+
+    // MRR comparison (estimate based on new signups)
+    const currentPeriodMRR = currentPeriodSignups * MONTHLY_PRICE;
+    const previousPeriodMRR = previousPeriodSignups * MONTHLY_PRICE;
+
     return {
       currentMembers,
       mrr,
@@ -249,6 +319,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       cancellationsThisMonth,
       churnRate,
       growthRate,
+      // 4-week period comparisons
+      newSignupsComparison: createComparison(currentPeriodSignups, previousPeriodSignups),
+      mrrComparison: createComparison(currentPeriodMRR, previousPeriodMRR),
     };
   });
 }
