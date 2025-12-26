@@ -111,14 +111,22 @@ export default function DashboardPage() {
             title="MRR (4 uger)"
             value={formatCurrency(metrics.mrr)}
             icon={DollarSign}
-            description="Månedlig tilbagevendende indtægt"
+            description={`${metrics.payingMembers} betalende medlemmer`}
             comparison={metrics.mrrComparison}
+          />
+
+          <MetricCard
+            title="Betalende Medlemmer"
+            value={metrics.payingMembers}
+            icon={Users}
+            description={`${metrics.trialMembers} i trial`}
+            trend={metrics.payingMembers > 0 ? "up" : "neutral"}
           />
 
           <MetricCard
             title="Nye Medlemmer (4 uger)"
             value={metrics.newSignupsComparison?.current || 0}
-            icon={Users}
+            icon={TrendingUp}
             description={`${metrics.newSignupsThisMonth} denne måned`}
             comparison={metrics.newSignupsComparison}
           />
@@ -129,14 +137,6 @@ export default function DashboardPage() {
             icon={TrendingDown}
             description={`${metrics.cancellationsThisMonth} opsigelser`}
             trend={metrics.churnRate > 5 ? "down" : "up"}
-          />
-
-          <MetricCard
-            title="Total Indtægt"
-            value={formatCurrency(metrics.totalRevenue)}
-            icon={TrendingUp}
-            description="Alle betalinger"
-            trend="up"
           />
         </div>
 

@@ -28,42 +28,73 @@ function createComparison(current: number, previous: number): MetricComparison {
 }
 
 /**
- * Get current active members count
+ * Get all active and trialing subscriptions
  */
-export async function getCurrentMembers(): Promise<number> {
-  return withCache("current-members", async () => {
-    const subscriptions = await stripe.subscriptions.list({
-      status: "active",
+async function getAllActiveSubscriptions() {
+  const subscriptions = await stripe.subscriptions.list({
+    status: "all", // Get all to filter trialing and active
+    limit: 100,
+    expand: ["data.customer"],
+  });
+
+  let allSubscriptions = subscriptions.data;
+  let hasMore = subscriptions.has_more;
+
+  while (hasMore) {
+    const nextPage = await stripe.subscriptions.list({
+      status: "all",
       limit: 100,
+      starting_after: allSubscriptions[allSubscriptions.length - 1].id,
       expand: ["data.customer"],
     });
 
-    // If there are more than 100, we need to paginate
-    let allSubscriptions = subscriptions.data;
-    let hasMore = subscriptions.has_more;
+    allSubscriptions = [...allSubscriptions, ...nextPage.data];
+    hasMore = nextPage.has_more;
+  }
 
-    while (hasMore) {
-      const nextPage = await stripe.subscriptions.list({
-        status: "active",
-        limit: 100,
-        starting_after: allSubscriptions[allSubscriptions.length - 1].id,
-        expand: ["data.customer"],
-      });
+  // Only return active and trialing subscriptions
+  return allSubscriptions.filter(
+    (sub) => sub.status === "active" || sub.status === "trialing"
+  );
+}
 
-      allSubscriptions = [...allSubscriptions, ...nextPage.data];
-      hasMore = nextPage.has_more;
-    }
+/**
+ * Get current trial members count
+ */
+export async function getTrialMembers(): Promise<number> {
+  return withCache("trial-members", async () => {
+    const allSubs = await getAllActiveSubscriptions();
+    return allSubs.filter((sub) => sub.status === "trialing").length;
+  });
+}
 
-    return allSubscriptions.length;
+/**
+ * Get current paying members count (active but not trialing)
+ */
+export async function getPayingMembers(): Promise<number> {
+  return withCache("paying-members", async () => {
+    const allSubs = await getAllActiveSubscriptions();
+    return allSubs.filter((sub) => sub.status === "active").length;
+  });
+}
+
+/**
+ * Get current active members count (total: trial + paying)
+ */
+export async function getCurrentMembers(): Promise<number> {
+  return withCache("current-members", async () => {
+    const allSubs = await getAllActiveSubscriptions();
+    return allSubs.length;
   });
 }
 
 /**
  * Calculate Monthly Recurring Revenue (MRR)
+ * Only counts paying members (not trials)
  */
 export async function calculateMRR(): Promise<number> {
-  const members = await getCurrentMembers();
-  return members * MONTHLY_PRICE;
+  const payingMembers = await getPayingMembers();
+  return payingMembers * MONTHLY_PRICE;
 }
 
 /**
@@ -281,6 +312,8 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   return withCache("dashboard-metrics", async () => {
     const [
       currentMembers,
+      payingMembers,
+      trialMembers,
       mrr,
       totalRevenue,
       newSignupsThisMonth,
@@ -289,6 +322,8 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       growthRate,
     ] = await Promise.all([
       getCurrentMembers(),
+      getPayingMembers(),
+      getTrialMembers(),
       calculateMRR(),
       calculateTotalRevenue(),
       getNewSignupsThisMonth(),
@@ -313,6 +348,8 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
     return {
       currentMembers,
+      payingMembers,
+      trialMembers,
       mrr,
       totalRevenue,
       newSignupsThisMonth,

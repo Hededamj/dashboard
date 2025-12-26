@@ -7,6 +7,8 @@ export interface MetricComparison {
 
 export interface DashboardMetrics {
   currentMembers: number;
+  payingMembers: number;
+  trialMembers: number;
   mrr: number;
   totalRevenue: number;
   newSignupsThisMonth: number;
