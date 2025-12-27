@@ -198,6 +198,13 @@ async function fetchAllSubscriptions() {
 async function getAllActiveSubscriptions() {
   const allSubscriptions = await fetchAllSubscriptions();
 
+  // Count by status for debugging
+  const statusCount: Record<string, number> = {};
+  allSubscriptions.forEach((sub) => {
+    statusCount[sub.status] = (statusCount[sub.status] || 0) + 1;
+  });
+  console.log('[Subscriptions] Status breakdown:', statusCount);
+
   // Filter logic:
   // - Include ALL trialing subscriptions (even if canceled, they're still active trials)
   // - Include active subscriptions ONLY if they will renew (cancel_at_period_end !== true)
@@ -207,7 +214,12 @@ async function getAllActiveSubscriptions() {
       (sub.status === "active" && sub.cancel_at_period_end !== true)
   );
 
-  console.log(`[Subscriptions] ${activeAndTrialing.length} active/trialing subscriptions`);
+  // Count canceled subscriptions for debugging
+  const canceledButActive = allSubscriptions.filter(
+    (sub) => sub.status === "active" && sub.cancel_at_period_end === true
+  );
+  console.log(`[Subscriptions] ${activeAndTrialing.length} active/trialing (${canceledButActive.length} canceled but still active)`);
+
   return activeAndTrialing;
 }
 
