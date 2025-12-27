@@ -37,9 +37,6 @@ export async function GET() {
     const testModeCount = allSubs.filter((sub) => sub.livemode === false).length;
     const liveModeCount = allSubs.filter((sub) => sub.livemode === true).length;
 
-    // Check our active subscriptions for test mode
-    const ourActiveTestMode = ourActive.filter((sub) => sub.livemode === false).length;
-
     // Count active subscriptions with cancel_at_period_end
     const activeWithCancel = allSubs.filter(
       (sub) => sub.status === "active" && sub.cancel_at_period_end === true
@@ -59,6 +56,9 @@ export async function GET() {
 
     const ourPaying = ourActive.filter((sub) => sub.status === "active");
     const ourTrials = ourActive.filter((sub) => sub.status === "trialing");
+
+    // Check our active subscriptions for test mode
+    const ourActiveTestMode = ourActive.filter((sub) => sub.livemode === false).length;
 
     // Check for subscriptions with collection issues
     const activeWithLatestInvoiceOpen = allSubs.filter(
