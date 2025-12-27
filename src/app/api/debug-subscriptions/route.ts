@@ -38,6 +38,11 @@ export async function GET() {
       (sub) => sub.status === "active" && sub.cancel_at_period_end === true
     );
 
+    // Count active subscriptions with cancel_at set (scheduled cancellation)
+    const activeWithCancelAt = allSubs.filter(
+      (sub) => sub.status === "active" && sub.cancel_at !== null
+    );
+
     // Count our filtered "active" subscriptions
     const ourActive = allSubs.filter(
       (sub) =>
@@ -109,6 +114,7 @@ export async function GET() {
       total: allSubs.length,
       statusBreakdown: statusCount,
       activeWithCancelAtPeriodEnd: activeWithCancel.length,
+      activeWithCancelAt: activeWithCancelAt.length,
       activeWithUnpaidInvoice: activeWithLatestInvoiceUnpaid.length,
       activeWithOpenInvoice: activeWithLatestInvoiceOpen.length,
       activeWithNoSuccessfulPayment: activeWithNoSuccessfulPayment.length,
