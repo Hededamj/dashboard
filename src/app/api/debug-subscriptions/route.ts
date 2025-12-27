@@ -210,6 +210,76 @@ export async function GET() {
       .filter(([_, mrr]) => mrr === 0)
       .map(([customerId, _]) => customerId);
 
+    // NEW: Check for coupons and discounts
+    const subscriptionsWithCoupons = ourPaying.filter((sub) => {
+      return sub.discount !== null ||
+             (sub.items?.data?.[0]?.price?.recurring?.trial_period_days !== undefined);
+    });
+
+    const customersWithCoupons = new Set(
+      subscriptionsWithCoupons.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
+    // NEW: Check subscription ages and recent changes
+    const last4WeeksTimestamp = now - (28 * 24 * 60 * 60); // 4 weeks ago
+    const last24HoursTimestamp = now - (24 * 60 * 60);
+
+    const createdInLast4Weeks = ourPaying.filter((sub) => sub.created >= last4WeeksTimestamp);
+    const createdBefore4Weeks = ourPaying.filter((sub) => sub.created < last4WeeksTimestamp);
+
+    const uniqueCustomersCreatedInLast4Weeks = new Set(
+      createdInLast4Weeks.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
+    const uniqueCustomersCreatedBefore4Weeks = new Set(
+      createdBefore4Weeks.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
+    // NEW: Check for subscriptions updated recently (status changes)
+    const updatedInLast24Hours = ourPaying.filter((sub) => {
+      const currentPeriodStart = sub.current_period_start || 0;
+      const statusTransitions = (sub as any).status_transitions;
+      const latestUpdate = Math.max(
+        currentPeriodStart,
+        statusTransitions?.trial_end || 0,
+        statusTransitions?.canceled_at || 0
+      );
+      return latestUpdate >= last24HoursTimestamp;
+    });
+
+    // NEW: Get detailed info about discounted customers
+    const discountedCustomerDetails: Array<{
+      customerId: string;
+      mrr: number;
+      hasDiscount: boolean;
+      subscriptionAge: number;
+      price: number;
+    }> = [];
+
+    ourPaying.forEach((sub) => {
+      const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
+      const mrr = customerMRR[customerId] || 0;
+
+      if (mrr < 149 && mrr > 0) {
+        const item = sub.items?.data?.[0];
+        const price = item?.price?.unit_amount ? item.price.unit_amount / 100 : 0;
+
+        discountedCustomerDetails.push({
+          customerId,
+          mrr,
+          hasDiscount: sub.discount !== null,
+          subscriptionAge: Math.floor((now - sub.created) / 86400), // days
+          price,
+        });
+      }
+    });
+
     return NextResponse.json({
       total: allSubs.length,
       testModeSubscriptions: testModeCount,
@@ -263,6 +333,33 @@ export async function GET() {
         customersByMRR: customersByMRR,
         totalUniquePayingCustomers: Object.keys(customerMRR).length,
         customersWithNonZeroMRR: Object.values(customerMRR).filter(mrr => mrr > 0).length,
+      },
+      couponAnalysis: {
+        subscriptionsWithCoupons: subscriptionsWithCoupons.length,
+        customersWithCoupons: customersWithCoupons.size,
+        percentageWithCoupons: ((customersWithCoupons.size / uniquePayingCustomers.size) * 100).toFixed(1),
+      },
+      timeWindowAnalysis: {
+        last4Weeks: {
+          subscriptions: createdInLast4Weeks.length,
+          uniqueCustomers: uniqueCustomersCreatedInLast4Weeks.size,
+        },
+        before4Weeks: {
+          subscriptions: createdBefore4Weeks.length,
+          uniqueCustomers: uniqueCustomersCreatedBefore4Weeks.size,
+        },
+        updatedInLast24Hours: updatedInLast24Hours.length,
+      },
+      discountedCustomers: {
+        count: discountedCustomerDetails.length,
+        details: discountedCustomerDetails.slice(0, 10), // First 10 for inspection
+        summary: {
+          withActiveDiscount: discountedCustomerDetails.filter(d => d.hasDiscount).length,
+          withoutActiveDiscount: discountedCustomerDetails.filter(d => !d.hasDiscount).length,
+          avgMRR: discountedCustomerDetails.length > 0
+            ? (discountedCustomerDetails.reduce((sum, d) => sum + d.mrr, 0) / discountedCustomerDetails.length).toFixed(2)
+            : 0,
+        },
       },
     });
   } catch (error) {
