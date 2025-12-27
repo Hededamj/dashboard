@@ -7,7 +7,7 @@ export async function GET() {
     const subscriptions = await stripe.subscriptions.list({
       status: "all",
       limit: 100,
-      expand: ["data.latest_invoice"],
+      expand: ["data.latest_invoice", "data.latest_invoice.payment_intent"],
     });
 
     let allSubs = subscriptions.data;
@@ -19,7 +19,7 @@ export async function GET() {
         status: "all",
         limit: 100,
         starting_after: allSubs[allSubs.length - 1].id,
-        expand: ["data.latest_invoice"],
+        expand: ["data.latest_invoice", "data.latest_invoice.payment_intent"],
       });
 
       allSubs = [...allSubs, ...nextPage.data];
@@ -84,12 +84,36 @@ export async function GET() {
       )
     );
 
+    // Check for subscriptions that never had a successful payment
+    const activeWithNoSuccessfulPayment = allSubs.filter(
+      (sub) =>
+        sub.status === "active" &&
+        sub.latest_invoice &&
+        typeof sub.latest_invoice === 'object' &&
+        sub.latest_invoice.payment_intent &&
+        typeof sub.latest_invoice.payment_intent === 'object' &&
+        sub.latest_invoice.payment_intent.status !== 'succeeded'
+    );
+
+    // Check subscription ages - maybe very new subscriptions aren't counted yet?
+    const now = Math.floor(Date.now() / 1000);
+    const veryNewActive = ourPaying.filter(
+      (sub) => now - sub.created < 3600 // Created in last hour
+    );
+
+    const recentlyCreatedActive = ourPaying.filter(
+      (sub) => now - sub.created < 86400 // Created in last 24 hours
+    );
+
     return NextResponse.json({
       total: allSubs.length,
       statusBreakdown: statusCount,
       activeWithCancelAtPeriodEnd: activeWithCancel.length,
       activeWithUnpaidInvoice: activeWithLatestInvoiceUnpaid.length,
       activeWithOpenInvoice: activeWithLatestInvoiceOpen.length,
+      activeWithNoSuccessfulPayment: activeWithNoSuccessfulPayment.length,
+      veryNewActiveSubscriptions: veryNewActive.length,
+      last24hActiveSubscriptions: recentlyCreatedActive.length,
       ourCounts: {
         subscriptions: {
           total: ourActive.length,
