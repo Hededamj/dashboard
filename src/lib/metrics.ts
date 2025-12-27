@@ -158,7 +158,7 @@ function createComparison(current: number, previous: number): MetricComparison {
  * This is the single source of truth for subscription data
  */
 async function fetchAllSubscriptions() {
-  return withCache("all-subscriptions-v2", async () => {
+  return withCache("all-subscriptions-v3", async () => {
     console.log('[Subscriptions] Fetching ALL subscriptions from Stripe...');
     const subscriptions = await stripe.subscriptions.list({
       status: "all",
@@ -205,13 +205,15 @@ async function getAllActiveSubscriptions() {
   });
   console.log('[Subscriptions] Status breakdown:', statusCount);
 
-  // Filter logic:
-  // - Include ALL trialing subscriptions (even if canceled, they're still active trials)
-  // - Include active subscriptions ONLY if they will renew (cancel_at_period_end !== true)
+  // Filter logic (based on Stripe's definition: "active subscriber" = customer with non-zero MRR):
+  // - Include ALL trialing subscriptions (even if canceled, they're still active trials) in LIVE MODE
+  // - Include active subscriptions ONLY if they will renew (cancel_at_period_end !== true) and are in LIVE MODE
+  // - Exclude TEST MODE subscriptions (livemode === false)
   const activeAndTrialing = allSubscriptions.filter(
     (sub) =>
-      sub.status === "trialing" ||
-      (sub.status === "active" && sub.cancel_at_period_end !== true)
+      sub.livemode === true &&
+      (sub.status === "trialing" ||
+        (sub.status === "active" && sub.cancel_at_period_end !== true))
   );
 
   // Count canceled subscriptions for debugging
@@ -227,7 +229,7 @@ async function getAllActiveSubscriptions() {
  * Get current trial members count
  */
 export async function getTrialMembers(): Promise<number> {
-  return withCache("trial-members-v2", async () => {
+  return withCache("trial-members-v3", async () => {
     const allSubs = await getAllActiveSubscriptions();
     return allSubs.filter((sub) => sub.status === "trialing").length;
   });
@@ -237,7 +239,7 @@ export async function getTrialMembers(): Promise<number> {
  * Get current paying members count (active but not trialing)
  */
 export async function getPayingMembers(): Promise<number> {
-  return withCache("paying-members-v2", async () => {
+  return withCache("paying-members-v3", async () => {
     const allSubs = await getAllActiveSubscriptions();
     return allSubs.filter((sub) => sub.status === "active").length;
   });
@@ -247,7 +249,7 @@ export async function getPayingMembers(): Promise<number> {
  * Get current active members count (total: trial + paying)
  */
 export async function getCurrentMembers(): Promise<number> {
-  return withCache("current-members-v2", async () => {
+  return withCache("current-members-v3", async () => {
     const allSubs = await getAllActiveSubscriptions();
     return allSubs.length;
   });
@@ -485,7 +487,7 @@ export async function calculateTotalRevenue(): Promise<number> {
  * Get all dashboard metrics with period-based comparisons
  */
 export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Promise<DashboardMetrics> {
-  return withCache(`dashboard-metrics-v2-${period}`, async () => {
+  return withCache(`dashboard-metrics-v3-${period}`, async () => {
     const [
       currentMembers,
       payingMembers,
