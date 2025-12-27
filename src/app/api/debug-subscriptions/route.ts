@@ -46,14 +46,40 @@ export async function GET() {
     const ourPaying = ourActive.filter((sub) => sub.status === "active");
     const ourTrials = ourActive.filter((sub) => sub.status === "trialing");
 
+    // Count unique customers instead of subscriptions
+    const uniqueCustomers = new Set(
+      ourActive.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
+    const uniquePayingCustomers = new Set(
+      ourPaying.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
+    const uniqueTrialCustomers = new Set(
+      ourTrials.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
     return NextResponse.json({
       total: allSubs.length,
       statusBreakdown: statusCount,
       activeWithCancelAtPeriodEnd: activeWithCancel.length,
       ourCounts: {
-        total: ourActive.length,
-        paying: ourPaying.length,
-        trials: ourTrials.length,
+        subscriptions: {
+          total: ourActive.length,
+          paying: ourPaying.length,
+          trials: ourTrials.length,
+        },
+        uniqueCustomers: {
+          total: uniqueCustomers.size,
+          paying: uniquePayingCustomers.size,
+          trials: uniqueTrialCustomers.size,
+        },
       },
       expectedStripe: {
         total: 329,
@@ -61,9 +87,16 @@ export async function GET() {
         paying: 276,
       },
       difference: {
-        total: ourActive.length - 329,
-        paying: ourPaying.length - 276,
-        trials: ourTrials.length - 53,
+        subscriptions: {
+          total: ourActive.length - 329,
+          paying: ourPaying.length - 276,
+          trials: ourTrials.length - 53,
+        },
+        uniqueCustomers: {
+          total: uniqueCustomers.size - 329,
+          paying: uniquePayingCustomers.size - 276,
+          trials: uniqueTrialCustomers.size - 53,
+        },
       },
     });
   } catch (error) {
