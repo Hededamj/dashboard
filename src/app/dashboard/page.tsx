@@ -54,7 +54,7 @@ export default function DashboardPage() {
 
         const [metricsRes, trendsRes, activityRes] = await Promise.all([
           fetch(`/api/metrics?period=${selectedPeriod}`),
-          fetch("/api/trends"),
+          fetch(`/api/trends?period=${selectedPeriod}`),
           fetch("/api/activity"),
         ]);
 

@@ -514,12 +514,12 @@ export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Pr
 }
 
 /**
- * Get growth trends for last 12 months
- * Fetches subscriptions with reasonable limit, then calculates monthly stats
+ * Get growth trends based on selected period
+ * Fetches subscriptions with reasonable limit, then calculates stats
  */
-export async function getGrowthTrends(): Promise<TrendData[]> {
-  return withCache("growth-trends-v3", async () => {
-    console.log('[Trends] Fetching subscriptions...');
+export async function getGrowthTrends(period: PeriodType = "last4weeks"): Promise<TrendData[]> {
+  return withCache(`growth-trends-${period}`, async () => {
+    console.log(`[Trends] Fetching subscriptions for period: ${period}...`);
     const allSubs = await stripe.subscriptions.list({
       limit: 100,
       status: "all",
@@ -551,39 +551,109 @@ export async function getGrowthTrends(): Promise<TrendData[]> {
     console.log(`[Trends] Total subscriptions fetched: ${allSubscriptions.length}`);
 
     const trends: TrendData[] = [];
+    const now = new Date();
 
-    // Calculate trends for last 12 months
-    for (let i = 11; i >= 0; i--) {
-      const month = subMonths(new Date(), i);
-      const monthStart = startOfMonth(month);
-      const monthEnd = endOfMonth(month);
-      const startTimestamp = Math.floor(monthStart.getTime() / 1000);
-      const endTimestamp = Math.floor(monthEnd.getTime() / 1000);
+    // Determine granularity based on period
+    if (period === "today" || period === "yesterday") {
+      // Show last 7 days for context
+      for (let i = 6; i >= 0; i--) {
+        const day = subDays(now, i);
+        const dayStart = startOfDay(day);
+        const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+        const startTimestamp = Math.floor(dayStart.getTime() / 1000);
+        const endTimestamp = Math.floor(dayEnd.getTime() / 1000);
 
-      // Count subscriptions that were active during this month
-      const activeInMonth = allSubscriptions.filter((sub) => {
-        const created = sub.created;
-        const canceled = sub.canceled_at || null;
+        const activeOnDay = allSubscriptions.filter((sub) => {
+          const created = sub.created;
+          const canceled = sub.canceled_at || null;
+          const wasCreated = created <= endTimestamp;
+          const stillActive = !canceled || canceled >= startTimestamp;
+          return wasCreated && stillActive;
+        });
 
-        // Subscription was created before month end
-        const wasCreated = created <= endTimestamp;
+        const memberCount = activeOnDay.length;
+        trends.push({
+          month: format(day, "d. MMM", { locale: da }),
+          members: memberCount,
+          revenue: memberCount * MONTHLY_PRICE,
+        });
+      }
+    } else if (period === "last7days" || period === "last4weeks") {
+      // Show daily for last N days
+      const days = period === "last7days" ? 7 : 28;
+      for (let i = days - 1; i >= 0; i--) {
+        const day = subDays(now, i);
+        const dayStart = startOfDay(day);
+        const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+        const startTimestamp = Math.floor(dayStart.getTime() / 1000);
+        const endTimestamp = Math.floor(dayEnd.getTime() / 1000);
 
-        // Subscription was either not canceled, or canceled after month start
-        const stillActive = !canceled || canceled >= startTimestamp;
+        const activeOnDay = allSubscriptions.filter((sub) => {
+          const created = sub.created;
+          const canceled = sub.canceled_at || null;
+          const wasCreated = created <= endTimestamp;
+          const stillActive = !canceled || canceled >= startTimestamp;
+          return wasCreated && stillActive;
+        });
 
-        return wasCreated && stillActive;
-      });
+        const memberCount = activeOnDay.length;
+        trends.push({
+          month: format(day, "d. MMM", { locale: da }),
+          members: memberCount,
+          revenue: memberCount * MONTHLY_PRICE,
+        });
+      }
+    } else if (period === "last3months" || period === "monthToDate" || period === "lastMonth") {
+      // Show weekly for last 12 weeks
+      for (let i = 11; i >= 0; i--) {
+        const weekStart = subWeeks(now, i);
+        const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
+        const startTimestamp = Math.floor(weekStart.getTime() / 1000);
+        const endTimestamp = Math.floor(weekEnd.getTime() / 1000);
 
-      const memberCount = activeInMonth.length;
+        const activeInWeek = allSubscriptions.filter((sub) => {
+          const created = sub.created;
+          const canceled = sub.canceled_at || null;
+          const wasCreated = created <= endTimestamp;
+          const stillActive = !canceled || canceled >= startTimestamp;
+          return wasCreated && stillActive;
+        });
 
-      trends.push({
-        month: format(month, "MMM yyyy", { locale: da }),
-        members: memberCount,
-        revenue: memberCount * MONTHLY_PRICE,
-      });
+        const memberCount = activeInWeek.length;
+        trends.push({
+          month: format(weekStart, "d. MMM", { locale: da }),
+          members: memberCount,
+          revenue: memberCount * MONTHLY_PRICE,
+        });
+      }
+    } else {
+      // Show monthly for last12months, yearToDate, allTime
+      const months = period === "allTime" ? 24 : 12;
+      for (let i = months - 1; i >= 0; i--) {
+        const month = subMonths(now, i);
+        const monthStart = startOfMonth(month);
+        const monthEnd = endOfMonth(month);
+        const startTimestamp = Math.floor(monthStart.getTime() / 1000);
+        const endTimestamp = Math.floor(monthEnd.getTime() / 1000);
+
+        const activeInMonth = allSubscriptions.filter((sub) => {
+          const created = sub.created;
+          const canceled = sub.canceled_at || null;
+          const wasCreated = created <= endTimestamp;
+          const stillActive = !canceled || canceled >= startTimestamp;
+          return wasCreated && stillActive;
+        });
+
+        const memberCount = activeInMonth.length;
+        trends.push({
+          month: format(month, "MMM yyyy", { locale: da }),
+          members: memberCount,
+          revenue: memberCount * MONTHLY_PRICE,
+        });
+      }
     }
 
-    console.log('[Trends] Calculated trends for 12 months');
+    console.log(`[Trends] Calculated ${trends.length} data points for period: ${period}`);
     return trends;
   }, 60 * 60 * 1000); // Cache for 1 hour (trends don't change often)
 }
