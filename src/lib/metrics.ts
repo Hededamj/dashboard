@@ -155,33 +155,46 @@ function createComparison(current: number, previous: number): MetricComparison {
 
 /**
  * Get all active and trialing subscriptions
+ * Cached and limited for performance
  */
 async function getAllActiveSubscriptions() {
-  const subscriptions = await stripe.subscriptions.list({
-    status: "all", // Get all to filter trialing and active
-    limit: 100,
-    expand: ["data.customer"],
-  });
-
-  let allSubscriptions = subscriptions.data;
-  let hasMore = subscriptions.has_more;
-
-  while (hasMore) {
-    const nextPage = await stripe.subscriptions.list({
-      status: "all",
+  return withCache("all-active-subscriptions", async () => {
+    console.log('[Subscriptions] Fetching active subscriptions...');
+    const subscriptions = await stripe.subscriptions.list({
+      status: "all", // Get all to filter trialing and active
       limit: 100,
-      starting_after: allSubscriptions[allSubscriptions.length - 1].id,
       expand: ["data.customer"],
     });
 
-    allSubscriptions = [...allSubscriptions, ...nextPage.data];
-    hasMore = nextPage.has_more;
-  }
+    let allSubscriptions = subscriptions.data;
+    let hasMore = subscriptions.has_more;
+    let pageCount = 1;
+    const MAX_PAGES = 50; // Limit to 5000 subscriptions max
 
-  // Only return active and trialing subscriptions
-  return allSubscriptions.filter(
-    (sub) => sub.status === "active" || sub.status === "trialing"
-  );
+    while (hasMore && pageCount < MAX_PAGES) {
+      const nextPage = await stripe.subscriptions.list({
+        status: "all",
+        limit: 100,
+        starting_after: allSubscriptions[allSubscriptions.length - 1].id,
+        expand: ["data.customer"],
+      });
+
+      allSubscriptions = [...allSubscriptions, ...nextPage.data];
+      hasMore = nextPage.has_more;
+      pageCount++;
+    }
+
+    console.log(`[Subscriptions] Fetched ${allSubscriptions.length} total subscriptions`);
+
+    // Only return active and trialing subscriptions
+    const activeAndTrialing = allSubscriptions.filter(
+      (sub) => sub.status === "active" || sub.status === "trialing"
+    );
+
+    console.log(`[Subscriptions] ${activeAndTrialing.length} active/trialing subscriptions`);
+
+    return activeAndTrialing;
+  }, 15 * 60 * 1000); // Cache for 15 minutes
 }
 
 /**
@@ -227,35 +240,40 @@ export async function calculateMRR(): Promise<number> {
  * Get members count at start of current month
  */
 async function getMembersAtStartOfMonth(): Promise<number> {
-  const startOfCurrentMonth = startOfMonth(new Date());
-  const startTimestamp = Math.floor(startOfCurrentMonth.getTime() / 1000);
+  return withCache("members-at-month-start", async () => {
+    const startOfCurrentMonth = startOfMonth(new Date());
+    const startTimestamp = Math.floor(startOfCurrentMonth.getTime() / 1000);
 
-  // Get all active subscriptions
-  const activeSubscriptions = await stripe.subscriptions.list({
-    status: "active",
-    limit: 100,
-  });
-
-  let allActive = activeSubscriptions.data;
-  let hasMore = activeSubscriptions.has_more;
-
-  while (hasMore) {
-    const nextPage = await stripe.subscriptions.list({
+    // Get all active subscriptions
+    const activeSubscriptions = await stripe.subscriptions.list({
       status: "active",
       limit: 100,
-      starting_after: allActive[allActive.length - 1].id,
     });
 
-    allActive = [...allActive, ...nextPage.data];
-    hasMore = nextPage.has_more;
-  }
+    let allActive = activeSubscriptions.data;
+    let hasMore = activeSubscriptions.has_more;
+    let pageCount = 1;
+    const MAX_PAGES = 50; // Limit to 5000 subscriptions max
 
-  // Count those that existed at start of month
-  const membersAtStart = allActive.filter(
-    (sub) => sub.created < startTimestamp
-  ).length;
+    while (hasMore && pageCount < MAX_PAGES) {
+      const nextPage = await stripe.subscriptions.list({
+        status: "active",
+        limit: 100,
+        starting_after: allActive[allActive.length - 1].id,
+      });
 
-  return membersAtStart;
+      allActive = [...allActive, ...nextPage.data];
+      hasMore = nextPage.has_more;
+      pageCount++;
+    }
+
+    // Count those that existed at start of month
+    const membersAtStart = allActive.filter(
+      (sub) => sub.created < startTimestamp
+    ).length;
+
+    return membersAtStart;
+  }, 30 * 60 * 1000); // Cache for 30 minutes
 }
 
 /**
@@ -274,11 +292,13 @@ export async function getNewSignupsThisMonth(): Promise<number> {
       limit: 100,
     });
 
-    // Handle pagination
+    // Handle pagination with limit
     let allEvents = events.data;
     let hasMore = events.has_more;
+    let pageCount = 1;
+    const MAX_PAGES = 10; // Limit to 1000 events max (should be enough for monthly signups)
 
-    while (hasMore) {
+    while (hasMore && pageCount < MAX_PAGES) {
       const nextPage = await stripe.events.list({
         type: "customer.subscription.created",
         created: {
@@ -290,10 +310,11 @@ export async function getNewSignupsThisMonth(): Promise<number> {
 
       allEvents = [...allEvents, ...nextPage.data];
       hasMore = nextPage.has_more;
+      pageCount++;
     }
 
     return allEvents.length;
-  });
+  }, 15 * 60 * 1000); // Cache for 15 minutes
 }
 
 /**
@@ -347,11 +368,13 @@ export async function getCancellationsThisMonth(): Promise<number> {
       limit: 100,
     });
 
-    // Handle pagination
+    // Handle pagination with limit
     let allEvents = events.data;
     let hasMore = events.has_more;
+    let pageCount = 1;
+    const MAX_PAGES = 10; // Limit to 1000 events max (should be enough for monthly cancellations)
 
-    while (hasMore) {
+    while (hasMore && pageCount < MAX_PAGES) {
       const nextPage = await stripe.events.list({
         type: "customer.subscription.deleted",
         created: {
@@ -363,10 +386,11 @@ export async function getCancellationsThisMonth(): Promise<number> {
 
       allEvents = [...allEvents, ...nextPage.data];
       hasMore = nextPage.has_more;
+      pageCount++;
     }
 
     return allEvents.length;
-  });
+  }, 15 * 60 * 1000); // Cache for 15 minutes
 }
 
 /**
