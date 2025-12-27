@@ -762,3 +762,73 @@ export async function getRecentActivity(): Promise<ActivityEvent[]> {
     return activities.slice(0, 20);
   });
 }
+
+/**
+ * Calculate analytics metrics (LTV, CAC, ratios, etc.)
+ * TODO: Replace hardcoded marketing spend with dynamic data
+ */
+export async function getAnalyticsMetrics(): Promise<any> {
+  const [
+    payingMembers,
+    trialMembers,
+    churnRate,
+    mrr,
+  ] = await Promise.all([
+    getPayingMembers(),
+    getTrialMembers(),
+    calculateChurnRate(),
+    calculateMRR(),
+  ]);
+
+  // Calculate ARPS (Average Revenue Per Subscriber)
+  const arps = payingMembers > 0 ? mrr / payingMembers : 0;
+
+  // Calculate LTV (Lifetime Value)
+  // LTV = ARPS / Monthly Churn Rate
+  const ltv = churnRate > 0 ? arps / (churnRate / 100) : arps * 12; // Default to 12 months if no churn
+
+  // TODO: Get marketing spend from settings/API
+  // For now, using average from Excel sheet
+  const monthlyMarketingSpend = 15000; // DKK
+  const newCustomersThisMonth = await getNewSignupsThisMonth();
+
+  // Calculate CAC (Customer Acquisition Cost)
+  const cac = newCustomersThisMonth > 0 ? monthlyMarketingSpend / newCustomersThisMonth : 0;
+
+  // Calculate LTV:CAC Ratio (should be >3)
+  const ltvCacRatio = cac > 0 ? ltv / cac : 0;
+
+  // Calculate Payback Period (months to recover CAC)
+  const paybackPeriod = arps > 0 ? cac / arps : 0;
+
+  // Calculate Free Trial Conversion Rate
+  // For now, rough estimate based on trial vs paying ratio
+  const totalMembers = payingMembers + trialMembers;
+  const freeTrialConversionRate = totalMembers > 0 ? (payingMembers / totalMembers) * 100 : 0;
+
+  // Net MRR Growth (simplified - just MRR change)
+  // TODO: Calculate actual new MRR - churned MRR
+  const netMrrGrowth = mrr * (1 - churnRate / 100) - mrr; // Approximation
+
+  // Quick Ratio (for now, simplified)
+  const quickRatio = churnRate > 0 ? (100 / churnRate) : 10;
+
+  return {
+    ltv: Math.round(ltv),
+    cac: Math.round(cac),
+    ltvCacRatio: Math.round(ltvCacRatio * 10) / 10,
+    paybackPeriod: Math.round(paybackPeriod * 10) / 10,
+    freeTrialConversionRate: Math.round(freeTrialConversionRate * 10) / 10,
+    netMrrGrowth: Math.round(netMrrGrowth),
+    quickRatio: Math.round(quickRatio * 10) / 10,
+    membershipBreakdown: {
+      monthly: payingMembers, // TODO: Get actual breakdown from Stripe
+      sixMonth: 0,
+      twelveMonth: 0,
+      other: 0,
+    },
+    cacTrend: [], // TODO: Implement
+    conversionTrend: [], // TODO: Implement
+  };
+}
+

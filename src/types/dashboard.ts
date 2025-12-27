@@ -42,3 +42,30 @@ export interface DashboardData {
   trends: TrendData[];
   recentActivity: ActivityEvent[];
 }
+
+export interface AnalyticsMetrics {
+  // Unit Economics
+  ltv: number; // Lifetime Value
+  cac: number; // Customer Acquisition Cost
+  ltvCacRatio: number; // LTV:CAC ratio (should be >3)
+  paybackPeriod: number; // Months to recover CAC
+
+  // Conversion
+  freeTrialConversionRate: number; // % of trials that convert to paid
+
+  // Growth
+  netMrrGrowth: number; // Net MRR change this month
+  quickRatio: number; // (New+Expansion MRR) / Churned MRR
+
+  // Breakdown
+  membershipBreakdown: {
+    monthly: number;
+    sixMonth: number;
+    twelveMonth: number;
+    other: number;
+  };
+
+  // Trends over time
+  cacTrend: TrendData[];
+  conversionTrend: TrendData[];
+}
