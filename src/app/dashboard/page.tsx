@@ -89,7 +89,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#FFF6F6]">
         <DashboardHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -112,7 +112,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#FFF6F6]">
         <DashboardHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
@@ -135,7 +135,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FFF6F6]">
       <DashboardHeader />
 
       <main className="container mx-auto px-4 py-8">
