@@ -33,6 +33,13 @@ export async function GET() {
       statusCount[sub.status] = (statusCount[sub.status] || 0) + 1;
     });
 
+    // Check for test mode subscriptions
+    const testModeCount = allSubs.filter((sub) => sub.livemode === false).length;
+    const liveModeCount = allSubs.filter((sub) => sub.livemode === true).length;
+
+    // Check our active subscriptions for test mode
+    const ourActiveTestMode = ourActive.filter((sub) => sub.livemode === false).length;
+
     // Count active subscriptions with cancel_at_period_end
     const activeWithCancel = allSubs.filter(
       (sub) => sub.status === "active" && sub.cancel_at_period_end === true
@@ -112,6 +119,9 @@ export async function GET() {
 
     return NextResponse.json({
       total: allSubs.length,
+      testModeSubscriptions: testModeCount,
+      liveModeSubscriptions: liveModeCount,
+      ourActiveTestMode: ourActiveTestMode,
       statusBreakdown: statusCount,
       activeWithCancelAtPeriodEnd: activeWithCancel.length,
       activeWithCancelAt: activeWithCancelAt.length,
