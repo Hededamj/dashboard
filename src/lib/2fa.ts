@@ -1,9 +1,15 @@
-import { kv } from "@vercel/kv";
+import { createClient } from "@vercel/kv";
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
 import crypto from "crypto";
 
 const APP_NAME = "FamilyMind Dashboard";
+
+// Create KV client with custom URL
+const kv = createClient({
+  url: process.env.KV_REDIS_URL || process.env.KV_URL || "",
+  token: process.env.KV_REST_API_TOKEN || "",
+});
 
 export interface User2FAData {
   secret: string;
