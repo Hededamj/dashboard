@@ -215,7 +215,7 @@ async function getAllActiveSubscriptions() {
  * Get current trial members count
  */
 export async function getTrialMembers(): Promise<number> {
-  return withCache("trial-members", async () => {
+  return withCache("trial-members-v2", async () => {
     const allSubs = await getAllActiveSubscriptions();
     return allSubs.filter((sub) => sub.status === "trialing").length;
   });
@@ -225,7 +225,7 @@ export async function getTrialMembers(): Promise<number> {
  * Get current paying members count (active but not trialing)
  */
 export async function getPayingMembers(): Promise<number> {
-  return withCache("paying-members", async () => {
+  return withCache("paying-members-v2", async () => {
     const allSubs = await getAllActiveSubscriptions();
     return allSubs.filter((sub) => sub.status === "active").length;
   });
@@ -235,7 +235,7 @@ export async function getPayingMembers(): Promise<number> {
  * Get current active members count (total: trial + paying)
  */
 export async function getCurrentMembers(): Promise<number> {
-  return withCache("current-members", async () => {
+  return withCache("current-members-v2", async () => {
     const allSubs = await getAllActiveSubscriptions();
     return allSubs.length;
   });
@@ -473,7 +473,7 @@ export async function calculateTotalRevenue(): Promise<number> {
  * Get all dashboard metrics with period-based comparisons
  */
 export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Promise<DashboardMetrics> {
-  return withCache(`dashboard-metrics-${period}`, async () => {
+  return withCache(`dashboard-metrics-v2-${period}`, async () => {
     const [
       currentMembers,
       payingMembers,
