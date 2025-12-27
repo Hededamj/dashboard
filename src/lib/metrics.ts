@@ -192,20 +192,22 @@ async function fetchAllSubscriptions() {
 /**
  * Get all active and trialing subscriptions
  * Uses shared cached subscription data
- * Excludes subscriptions that are canceled (cancel_at_period_end = true)
+ * Excludes active subscriptions that are canceled (cancel_at_period_end = true)
+ * but includes ALL trialing subscriptions (even canceled ones, as they're still in trial)
  */
 async function getAllActiveSubscriptions() {
   const allSubscriptions = await fetchAllSubscriptions();
 
-  // Filter to only active and trialing, but exclude canceled subscriptions
-  // (subscriptions with cancel_at_period_end = true are still "active" but won't renew)
+  // Filter logic:
+  // - Include ALL trialing subscriptions (even if canceled, they're still active trials)
+  // - Include active subscriptions ONLY if they will renew (cancel_at_period_end !== true)
   const activeAndTrialing = allSubscriptions.filter(
     (sub) =>
-      (sub.status === "active" || sub.status === "trialing") &&
-      sub.cancel_at_period_end !== true
+      sub.status === "trialing" ||
+      (sub.status === "active" && sub.cancel_at_period_end !== true)
   );
 
-  console.log(`[Subscriptions] ${activeAndTrialing.length} active/trialing subscriptions (excluding canceled)`);
+  console.log(`[Subscriptions] ${activeAndTrialing.length} active/trialing subscriptions`);
   return activeAndTrialing;
 }
 
