@@ -136,6 +136,80 @@ export async function GET() {
       (sub) => now - sub.created < 86400 // Created in last 24 hours
     );
 
+    // NEW: Check for subscriptions with $0 or null MRR
+    const zeroMrrSubscriptions = ourPaying.filter((sub) => {
+      if (!sub.items || !sub.items.data || sub.items.data.length === 0) {
+        return true; // No items = $0 MRR
+      }
+      const item = sub.items.data[0];
+      if (!item.price || item.price.unit_amount === null || item.price.unit_amount === 0) {
+        return true; // No price or $0 price
+      }
+      return false;
+    });
+
+    // NEW: Calculate actual total MRR from all paying subscriptions
+    let actualTotalMRR = 0;
+    const customerMRR: Record<string, number> = {}; // MRR per customer
+
+    ourPaying.forEach((sub) => {
+      if (sub.items && sub.items.data && sub.items.data.length > 0) {
+        const item = sub.items.data[0];
+        if (item.price && item.price.unit_amount) {
+          const amount = item.price.unit_amount / 100; // Convert from øre to DKK
+          const interval = item.price.recurring?.interval || 'month';
+          const intervalCount = item.price.recurring?.interval_count || 1;
+
+          // Convert to monthly MRR
+          let monthlyAmount = amount;
+          if (interval === 'year') {
+            monthlyAmount = amount / 12;
+          } else if (interval === 'month' && intervalCount === 6) {
+            monthlyAmount = amount / 6;
+          } else if (interval === 'month' && intervalCount > 1) {
+            monthlyAmount = amount / intervalCount;
+          }
+
+          actualTotalMRR += monthlyAmount;
+
+          // Track per customer
+          const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
+          customerMRR[customerId] = (customerMRR[customerId] || 0) + monthlyAmount;
+        }
+      }
+    });
+
+    // NEW: Count customers by MRR amount
+    const customersByMRR: Record<string, number> = {
+      'zero': 0,
+      'under_100': 0,
+      '100_to_149': 0,
+      '149': 0,
+      '150_to_500': 0,
+      'over_500': 0,
+    };
+
+    Object.values(customerMRR).forEach((mrr) => {
+      if (mrr === 0) {
+        customersByMRR['zero']++;
+      } else if (mrr < 100) {
+        customersByMRR['under_100']++;
+      } else if (mrr >= 100 && mrr < 149) {
+        customersByMRR['100_to_149']++;
+      } else if (Math.abs(mrr - 149) < 1) {
+        customersByMRR['149']++;
+      } else if (mrr > 149 && mrr <= 500) {
+        customersByMRR['150_to_500']++;
+      } else {
+        customersByMRR['over_500']++;
+      }
+    });
+
+    // NEW: Customers with zero MRR
+    const customersWithZeroMRR = Object.entries(customerMRR)
+      .filter(([_, mrr]) => mrr === 0)
+      .map(([customerId, _]) => customerId);
+
     return NextResponse.json({
       total: allSubs.length,
       testModeSubscriptions: testModeCount,
@@ -179,6 +253,16 @@ export async function GET() {
           paying: uniquePayingCustomers.size - 276,
           trials: uniqueTrialCustomers.size - 53,
         },
+      },
+      mrrAnalysis: {
+        actualTotalMRR: Math.round(actualTotalMRR),
+        expectedMRR: 48185,
+        difference: Math.round(actualTotalMRR - 48185),
+        zeroMrrSubscriptions: zeroMrrSubscriptions.length,
+        customersWithZeroMRR: customersWithZeroMRR.length,
+        customersByMRR: customersByMRR,
+        totalUniquePayingCustomers: Object.keys(customerMRR).length,
+        customersWithNonZeroMRR: Object.values(customerMRR).filter(mrr => mrr > 0).length,
       },
     });
   } catch (error) {
