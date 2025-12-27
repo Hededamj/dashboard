@@ -8,13 +8,15 @@ import { MemberGrowthChart } from "@/components/dashboard/MemberGrowthChart";
 import { RevenueTrendChart } from "@/components/dashboard/RevenueTrendChart";
 import { RecentActivityTable } from "@/components/dashboard/RecentActivityTable";
 import { PeriodSelector, type PeriodType } from "@/components/dashboard/PeriodSelector";
-import type { DashboardMetrics, TrendData, ActivityEvent } from "@/types";
+import { ExportButton } from "@/components/export/ExportButton";
+import type { DashboardMetrics, TrendData, ActivityEvent, AnalyticsMetrics } from "@/types";
 import { Users, DollarSign, TrendingDown, TrendingUp } from "lucide-react";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsMetrics | null>(null);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [activity, setActivity] = useState<ActivityEvent[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("last4weeks");
@@ -52,25 +54,28 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
 
-        const [metricsRes, trendsRes, activityRes] = await Promise.all([
+        const [metricsRes, trendsRes, activityRes, analyticsRes] = await Promise.all([
           fetch(`/api/metrics?period=${selectedPeriod}`),
           fetch(`/api/trends?period=${selectedPeriod}`),
           fetch("/api/activity"),
+          fetch("/api/analytics"),
         ]);
 
         if (!metricsRes.ok || !trendsRes.ok || !activityRes.ok) {
           throw new Error("Failed to fetch dashboard data");
         }
 
-        const [metricsData, trendsData, activityData] = await Promise.all([
+        const [metricsData, trendsData, activityData, analyticsData] = await Promise.all([
           metricsRes.json(),
           trendsRes.json(),
           activityRes.json(),
+          analyticsRes.ok ? analyticsRes.json() : null,
         ]);
 
         setMetrics(metricsData);
         setTrends(trendsData);
         setActivity(activityData);
+        setAnalytics(analyticsData);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError("Kunne ikke hente dashboard data. Prøv igen senere.");
@@ -134,11 +139,22 @@ export default function DashboardPage() {
       <DashboardHeader />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Period Selector */}
-        <PeriodSelector
-          selectedPeriod={selectedPeriod}
-          onPeriodChange={setSelectedPeriod}
-        />
+        {/* Period Selector & Export */}
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex-1">
+            <PeriodSelector
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+            />
+          </div>
+          {metrics && (
+            <ExportButton
+              dashboardMetrics={metrics}
+              analyticsMetrics={analytics || undefined}
+              period={selectedPeriod}
+            />
+          )}
+        </div>
 
         {/* Metric Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
