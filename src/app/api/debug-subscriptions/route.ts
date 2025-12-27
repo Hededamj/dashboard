@@ -7,6 +7,7 @@ export async function GET() {
     const subscriptions = await stripe.subscriptions.list({
       status: "all",
       limit: 100,
+      expand: ["data.latest_invoice"],
     });
 
     let allSubs = subscriptions.data;
@@ -18,6 +19,7 @@ export async function GET() {
         status: "all",
         limit: 100,
         starting_after: allSubs[allSubs.length - 1].id,
+        expand: ["data.latest_invoice"],
       });
 
       allSubs = [...allSubs, ...nextPage.data];
@@ -46,6 +48,23 @@ export async function GET() {
     const ourPaying = ourActive.filter((sub) => sub.status === "active");
     const ourTrials = ourActive.filter((sub) => sub.status === "trialing");
 
+    // Check for subscriptions with collection issues
+    const activeWithLatestInvoiceOpen = allSubs.filter(
+      (sub) =>
+        sub.status === "active" &&
+        sub.latest_invoice &&
+        typeof sub.latest_invoice === 'object' &&
+        sub.latest_invoice.status === 'open'
+    );
+
+    const activeWithLatestInvoiceUnpaid = allSubs.filter(
+      (sub) =>
+        sub.status === "active" &&
+        sub.latest_invoice &&
+        typeof sub.latest_invoice === 'object' &&
+        (sub.latest_invoice.status === 'open' || sub.latest_invoice.status === 'uncollectible')
+    );
+
     // Count unique customers instead of subscriptions
     const uniqueCustomers = new Set(
       ourActive.map((sub) =>
@@ -69,6 +88,8 @@ export async function GET() {
       total: allSubs.length,
       statusBreakdown: statusCount,
       activeWithCancelAtPeriodEnd: activeWithCancel.length,
+      activeWithUnpaidInvoice: activeWithLatestInvoiceUnpaid.length,
+      activeWithOpenInvoice: activeWithLatestInvoiceOpen.length,
       ourCounts: {
         subscriptions: {
           total: ourActive.length,
