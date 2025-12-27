@@ -158,7 +158,7 @@ function createComparison(current: number, previous: number): MetricComparison {
  * This is the single source of truth for subscription data
  */
 async function fetchAllSubscriptions() {
-  return withCache("all-subscriptions-v3", async () => {
+  return withCache("all-subscriptions-v4", async () => {
     console.log('[Subscriptions] Fetching ALL subscriptions from Stripe...');
     const subscriptions = await stripe.subscriptions.list({
       status: "all",
@@ -226,32 +226,61 @@ async function getAllActiveSubscriptions() {
 }
 
 /**
- * Get current trial members count
+ * Get current trial members count (unique customers)
  */
 export async function getTrialMembers(): Promise<number> {
-  return withCache("trial-members-v3", async () => {
+  return withCache("trial-members-v4", async () => {
     const allSubs = await getAllActiveSubscriptions();
-    return allSubs.filter((sub) => sub.status === "trialing").length;
+    const trialSubs = allSubs.filter((sub) => sub.status === "trialing");
+
+    // Count unique customers instead of subscriptions
+    const uniqueCustomers = new Set(
+      trialSubs.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
+    console.log(`[Trial Members] ${trialSubs.length} trial subscriptions → ${uniqueCustomers.size} unique customers`);
+    return uniqueCustomers.size;
   });
 }
 
 /**
- * Get current paying members count (active but not trialing)
+ * Get current paying members count (unique customers, active but not trialing)
  */
 export async function getPayingMembers(): Promise<number> {
-  return withCache("paying-members-v3", async () => {
+  return withCache("paying-members-v4", async () => {
     const allSubs = await getAllActiveSubscriptions();
-    return allSubs.filter((sub) => sub.status === "active").length;
+    const payingSubs = allSubs.filter((sub) => sub.status === "active");
+
+    // Count unique customers instead of subscriptions
+    const uniqueCustomers = new Set(
+      payingSubs.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
+    console.log(`[Paying Members] ${payingSubs.length} paying subscriptions → ${uniqueCustomers.size} unique customers`);
+    return uniqueCustomers.size;
   });
 }
 
 /**
- * Get current active members count (total: trial + paying)
+ * Get current active members count (unique customers: trial + paying)
  */
 export async function getCurrentMembers(): Promise<number> {
-  return withCache("current-members-v3", async () => {
+  return withCache("current-members-v4", async () => {
     const allSubs = await getAllActiveSubscriptions();
-    return allSubs.length;
+
+    // Count unique customers instead of subscriptions
+    const uniqueCustomers = new Set(
+      allSubs.map((sub) =>
+        typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+      )
+    );
+
+    console.log(`[Current Members] ${allSubs.length} total subscriptions → ${uniqueCustomers.size} unique customers`);
+    return uniqueCustomers.size;
   });
 }
 
@@ -487,7 +516,7 @@ export async function calculateTotalRevenue(): Promise<number> {
  * Get all dashboard metrics with period-based comparisons
  */
 export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Promise<DashboardMetrics> {
-  return withCache(`dashboard-metrics-v3-${period}`, async () => {
+  return withCache(`dashboard-metrics-v4-${period}`, async () => {
     const [
       currentMembers,
       payingMembers,
