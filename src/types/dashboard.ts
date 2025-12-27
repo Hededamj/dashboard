@@ -25,6 +25,8 @@ export interface TrendData {
   month: string;
   members: number;
   revenue: number;
+  previousMembers?: number;
+  previousRevenue?: number;
 }
 
 export interface ActivityEvent {

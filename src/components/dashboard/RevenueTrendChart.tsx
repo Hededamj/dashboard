@@ -8,6 +8,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 import type { TrendData } from "@/types";
@@ -45,6 +46,20 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
               }}
               formatter={(value: number) => formatCurrency(value)}
             />
+            <Legend
+              wrapperStyle={{ fontSize: "12px" }}
+              iconType="line"
+            />
+            <Area
+              type="monotone"
+              dataKey="previousRevenue"
+              stroke="#d1d5db"
+              fill="#d1d5db"
+              fillOpacity={0.1}
+              strokeWidth={2}
+              strokeDasharray="5 5"
+              name="Forrige periode"
+            />
             <Area
               type="monotone"
               dataKey="revenue"
@@ -52,6 +67,7 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
               fill="#10b981"
               fillOpacity={0.2}
               strokeWidth={2}
+              name="Nuværende periode"
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -8,6 +8,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 import type { TrendData } from "@/types";
@@ -42,6 +43,10 @@ export function MemberGrowthChart({ data }: MemberGrowthChartProps) {
                 borderRadius: "6px",
               }}
             />
+            <Legend
+              wrapperStyle={{ fontSize: "12px" }}
+              iconType="line"
+            />
             <Line
               type="monotone"
               dataKey="members"
@@ -49,6 +54,17 @@ export function MemberGrowthChart({ data }: MemberGrowthChartProps) {
               strokeWidth={2}
               dot={{ fill: "#3b82f6", r: 4 }}
               activeDot={{ r: 6 }}
+              name="Nuværende periode"
+            />
+            <Line
+              type="monotone"
+              dataKey="previousMembers"
+              stroke="#d1d5db"
+              strokeWidth={2}
+              strokeDasharray="5 5"
+              dot={{ fill: "#d1d5db", r: 3 }}
+              activeDot={{ r: 5 }}
+              name="Forrige periode"
             />
           </LineChart>
         </ResponsiveContainer>

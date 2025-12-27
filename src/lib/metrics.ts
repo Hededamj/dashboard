@@ -522,8 +522,26 @@ export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Pr
 }
 
 /**
+ * Helper: Count active subscriptions in a time range
+ */
+function countActiveInRange(
+  allSubscriptions: any[],
+  startTimestamp: number,
+  endTimestamp: number
+): number {
+  return allSubscriptions.filter((sub) => {
+    const created = sub.created;
+    const canceled = sub.canceled_at || null;
+    const wasCreated = created <= endTimestamp;
+    const stillActive = !canceled || canceled >= startTimestamp;
+    return wasCreated && stillActive;
+  }).length;
+}
+
+/**
  * Get growth trends based on selected period
  * Uses shared cached subscription data for fast period switching
+ * Includes comparison with previous period
  */
 export async function getGrowthTrends(period: PeriodType = "last4weeks"): Promise<TrendData[]> {
   console.log(`[Trends] Calculating trends for period: ${period}...`);
@@ -536,105 +554,132 @@ export async function getGrowthTrends(period: PeriodType = "last4weeks"): Promis
 
   // Determine granularity based on period
   if (period === "today" || period === "yesterday") {
-    // Show last 7 days for context
+    // Show last 7 days for context (with previous 7 days comparison)
     for (let i = 6; i >= 0; i--) {
       const day = subDays(now, i);
+      const prevDay = subDays(day, 7);
+
       const dayStart = startOfDay(day);
       const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
-      const startTimestamp = Math.floor(dayStart.getTime() / 1000);
-      const endTimestamp = Math.floor(dayEnd.getTime() / 1000);
+      const prevDayStart = startOfDay(prevDay);
+      const prevDayEnd = new Date(prevDayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
-      const activeOnDay = allSubscriptions.filter((sub) => {
-        const created = sub.created;
-        const canceled = sub.canceled_at || null;
-        const wasCreated = created <= endTimestamp;
-        const stillActive = !canceled || canceled >= startTimestamp;
-        return wasCreated && stillActive;
-      });
+      const memberCount = countActiveInRange(
+        allSubscriptions,
+        Math.floor(dayStart.getTime() / 1000),
+        Math.floor(dayEnd.getTime() / 1000)
+      );
 
-      const memberCount = activeOnDay.length;
+      const prevMemberCount = countActiveInRange(
+        allSubscriptions,
+        Math.floor(prevDayStart.getTime() / 1000),
+        Math.floor(prevDayEnd.getTime() / 1000)
+      );
+
       trends.push({
         month: format(day, "d. MMM", { locale: da }),
         members: memberCount,
         revenue: memberCount * MONTHLY_PRICE,
+        previousMembers: prevMemberCount,
+        previousRevenue: prevMemberCount * MONTHLY_PRICE,
       });
     }
   } else if (period === "last7days" || period === "last4weeks") {
-    // Show daily for last N days
+    // Show daily for last N days (with previous N days comparison)
     const days = period === "last7days" ? 7 : 28;
     for (let i = days - 1; i >= 0; i--) {
       const day = subDays(now, i);
+      const prevDay = subDays(day, days);
+
       const dayStart = startOfDay(day);
       const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
-      const startTimestamp = Math.floor(dayStart.getTime() / 1000);
-      const endTimestamp = Math.floor(dayEnd.getTime() / 1000);
+      const prevDayStart = startOfDay(prevDay);
+      const prevDayEnd = new Date(prevDayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
-      const activeOnDay = allSubscriptions.filter((sub) => {
-        const created = sub.created;
-        const canceled = sub.canceled_at || null;
-        const wasCreated = created <= endTimestamp;
-        const stillActive = !canceled || canceled >= startTimestamp;
-        return wasCreated && stillActive;
-      });
+      const memberCount = countActiveInRange(
+        allSubscriptions,
+        Math.floor(dayStart.getTime() / 1000),
+        Math.floor(dayEnd.getTime() / 1000)
+      );
 
-      const memberCount = activeOnDay.length;
+      const prevMemberCount = countActiveInRange(
+        allSubscriptions,
+        Math.floor(prevDayStart.getTime() / 1000),
+        Math.floor(prevDayEnd.getTime() / 1000)
+      );
+
       trends.push({
         month: format(day, "d. MMM", { locale: da }),
         members: memberCount,
         revenue: memberCount * MONTHLY_PRICE,
+        previousMembers: prevMemberCount,
+        previousRevenue: prevMemberCount * MONTHLY_PRICE,
       });
     }
   } else if (period === "last3months" || period === "monthToDate" || period === "lastMonth") {
-    // Show weekly for last 12 weeks
+    // Show weekly for last 12 weeks (with previous 12 weeks comparison)
     for (let i = 11; i >= 0; i--) {
       const weekStart = subWeeks(now, i);
+      const prevWeekStart = subWeeks(weekStart, 12);
+
       const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
-      const startTimestamp = Math.floor(weekStart.getTime() / 1000);
-      const endTimestamp = Math.floor(weekEnd.getTime() / 1000);
+      const prevWeekEnd = new Date(prevWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
 
-      const activeInWeek = allSubscriptions.filter((sub) => {
-        const created = sub.created;
-        const canceled = sub.canceled_at || null;
-        const wasCreated = created <= endTimestamp;
-        const stillActive = !canceled || canceled >= startTimestamp;
-        return wasCreated && stillActive;
-      });
+      const memberCount = countActiveInRange(
+        allSubscriptions,
+        Math.floor(weekStart.getTime() / 1000),
+        Math.floor(weekEnd.getTime() / 1000)
+      );
 
-      const memberCount = activeInWeek.length;
+      const prevMemberCount = countActiveInRange(
+        allSubscriptions,
+        Math.floor(prevWeekStart.getTime() / 1000),
+        Math.floor(prevWeekEnd.getTime() / 1000)
+      );
+
       trends.push({
         month: format(weekStart, "d. MMM", { locale: da }),
         members: memberCount,
         revenue: memberCount * MONTHLY_PRICE,
+        previousMembers: prevMemberCount,
+        previousRevenue: prevMemberCount * MONTHLY_PRICE,
       });
     }
   } else {
-    // Show monthly for last12months, yearToDate, allTime
+    // Show monthly for last12months, yearToDate, allTime (with previous period comparison)
     const months = period === "allTime" ? 24 : 12;
     for (let i = months - 1; i >= 0; i--) {
       const month = subMonths(now, i);
+      const prevMonth = subMonths(month, months);
+
       const monthStart = startOfMonth(month);
       const monthEnd = endOfMonth(month);
-      const startTimestamp = Math.floor(monthStart.getTime() / 1000);
-      const endTimestamp = Math.floor(monthEnd.getTime() / 1000);
+      const prevMonthStart = startOfMonth(prevMonth);
+      const prevMonthEnd = endOfMonth(prevMonth);
 
-      const activeInMonth = allSubscriptions.filter((sub) => {
-        const created = sub.created;
-        const canceled = sub.canceled_at || null;
-        const wasCreated = created <= endTimestamp;
-        const stillActive = !canceled || canceled >= startTimestamp;
-        return wasCreated && stillActive;
-      });
+      const memberCount = countActiveInRange(
+        allSubscriptions,
+        Math.floor(monthStart.getTime() / 1000),
+        Math.floor(monthEnd.getTime() / 1000)
+      );
 
-      const memberCount = activeInMonth.length;
+      const prevMemberCount = countActiveInRange(
+        allSubscriptions,
+        Math.floor(prevMonthStart.getTime() / 1000),
+        Math.floor(prevMonthEnd.getTime() / 1000)
+      );
+
       trends.push({
         month: format(month, "MMM yyyy", { locale: da }),
         members: memberCount,
         revenue: memberCount * MONTHLY_PRICE,
+        previousMembers: prevMemberCount,
+        previousRevenue: prevMemberCount * MONTHLY_PRICE,
       });
     }
   }
 
-  console.log(`[Trends] Calculated ${trends.length} data points for period: ${period}`);
+  console.log(`[Trends] Calculated ${trends.length} data points for period: ${period} (with comparison)`);
   return trends;
 }
 
