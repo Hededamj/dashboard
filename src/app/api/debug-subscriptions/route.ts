@@ -60,6 +60,25 @@ export async function GET() {
     // Check our active subscriptions for test mode
     const ourActiveTestMode = ourActive.filter((sub) => sub.livemode === false).length;
 
+    // Count subscriptions by interval (monthly, 6-month, annual)
+    const subscriptionsByInterval: Record<string, number> = {};
+    const subscriptionsByPrice: Record<number, number> = {};
+
+    ourPaying.forEach((sub) => {
+      if (sub.items && sub.items.data && sub.items.data.length > 0) {
+        const item = sub.items.data[0];
+        if (item.price) {
+          const interval = item.price.recurring?.interval || 'unknown';
+          const intervalCount = item.price.recurring?.interval_count || 1;
+          const key = intervalCount > 1 ? `${interval}_${intervalCount}` : interval;
+          subscriptionsByInterval[key] = (subscriptionsByInterval[key] || 0) + 1;
+
+          const amount = item.price.unit_amount || 0;
+          subscriptionsByPrice[amount] = (subscriptionsByPrice[amount] || 0) + 1;
+        }
+      }
+    });
+
     // Check for subscriptions with collection issues
     const activeWithLatestInvoiceOpen = allSubs.filter(
       (sub) =>
@@ -123,6 +142,8 @@ export async function GET() {
       liveModeSubscriptions: liveModeCount,
       ourActiveTestMode: ourActiveTestMode,
       statusBreakdown: statusCount,
+      subscriptionsByInterval: subscriptionsByInterval,
+      subscriptionsByPrice: subscriptionsByPrice,
       activeWithCancelAtPeriodEnd: activeWithCancel.length,
       activeWithCancelAt: activeWithCancelAt.length,
       activeWithUnpaidInvoice: activeWithLatestInvoiceUnpaid.length,
