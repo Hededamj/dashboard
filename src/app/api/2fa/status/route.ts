@@ -29,7 +29,7 @@ export async function GET() {
     }
 
     // Check if current device is trusted
-    const headersList = headers();
+    const headersList = await headers();
     const userAgent = headersList.get("user-agent") || "unknown";
     const ip = headersList.get("x-forwarded-for") || "unknown";
 

@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
     // If user wants to trust this device, save it
     if (trustDevice) {
-      const headersList = headers();
+      const headersList = await headers();
       const userAgent = headersList.get("user-agent") || "unknown";
       const ip = headersList.get("x-forwarded-for") || "unknown";
 
