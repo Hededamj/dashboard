@@ -773,19 +773,17 @@ export async function getAnalyticsMetrics(): Promise<any> {
     trialMembers,
     churnRate,
     mrr,
+    ltv,
   ] = await Promise.all([
     getPayingMembers(),
     getTrialMembers(),
     calculateChurnRate(),
     calculateMRR(),
+    calculateRetentionRevenueLTV(), // Use retention-based LTV
   ]);
 
   // Calculate ARPS (Average Revenue Per Subscriber)
   const arps = payingMembers > 0 ? mrr / payingMembers : 0;
-
-  // Calculate LTV (Lifetime Value)
-  // LTV = ARPS / Monthly Churn Rate
-  const ltv = churnRate > 0 ? arps / (churnRate / 100) : arps * 12; // Default to 12 months if no churn
 
   // TODO: Get marketing spend from settings/API
   // For now, using average from Excel sheet
@@ -832,3 +830,114 @@ export async function getAnalyticsMetrics(): Promise<any> {
   };
 }
 
+
+/**
+ * Calculate cohort retention data
+ * Groups customers by signup month and tracks retention over time
+ */
+async function calculateCohortRetention() {
+  const allSubscriptions = await fetchAllSubscriptions();
+  
+  // Group subscriptions by signup month (cohort)
+  const cohorts: Record<string, any[]> = {};
+  
+  allSubscriptions.forEach(sub => {
+    const signupDate = new Date(sub.created * 1000);
+    const cohortKey = format(startOfMonth(signupDate), 'yyyy-MM');
+    
+    if (!cohorts[cohortKey]) {
+      cohorts[cohortKey] = [];
+    }
+    cohorts[cohortKey].push(sub);
+  });
+
+  // Calculate retention for each cohort
+  const cohortRetention: Record<string, number[]> = {};
+  
+  Object.entries(cohorts).forEach(([cohortKey, subs]) => {
+    const cohortStart = new Date(cohortKey + '-01');
+    const retention: number[] = [];
+    
+    // Calculate retention for months 0-12
+    for (let monthOffset = 0; monthOffset <= 12; monthOffset++) {
+      const checkDate = new Date(cohortStart);
+      checkDate.setMonth(checkDate.getMonth() + monthOffset);
+      const checkTimestamp = Math.floor(checkDate.getTime() / 1000);
+      const monthEnd = endOfMonth(checkDate);
+      const endTimestamp = Math.floor(monthEnd.getTime() / 1000);
+      
+      // Count how many from this cohort are still active at this month
+      const stillActive = subs.filter(sub => {
+        const canceled = sub.canceled_at || null;
+        const wasCreated = sub.created <= endTimestamp;
+        const stillSubscribed = !canceled || canceled >= checkTimestamp;
+        return wasCreated && stillSubscribed;
+      });
+      
+      const retentionPercent = (stillActive.length / subs.length) * 100;
+      retention.push(retentionPercent);
+    }
+    
+    cohortRetention[cohortKey] = retention;
+  });
+
+  return cohortRetention;
+}
+
+/**
+ * Calculate average retention curve across all cohorts
+ */
+async function calculateAverageRetentionCurve(): Promise<number[]> {
+  const cohortRetention = await calculateCohortRetention();
+  const cohortKeys = Object.keys(cohortRetention);
+  
+  if (cohortKeys.length === 0) {
+    return [100, 85, 75, 68, 62, 58, 55, 52, 50, 48, 46, 45, 44];
+  }
+
+  const avgRetention: number[] = [];
+  
+  for (let monthOffset = 0; monthOffset <= 12; monthOffset++) {
+    let sum = 0;
+    let count = 0;
+    
+    cohortKeys.forEach(key => {
+      const retention = cohortRetention[key];
+      if (retention[monthOffset] !== undefined) {
+        sum += retention[monthOffset];
+        count++;
+      }
+    });
+    
+    avgRetention.push(count > 0 ? sum / count : 0);
+  }
+  
+  return avgRetention;
+}
+
+/**
+ * Calculate LTV using Retention Revenue method
+ */
+export async function calculateRetentionRevenueLTV(): Promise<number> {
+  return withCache('ltv-retention-revenue', async () => {
+    const [arps, retentionCurve] = await Promise.all([
+      calculateMRR().then(async (mrr) => {
+        const paying = await getPayingMembers();
+        return paying > 0 ? mrr / paying : 0;
+      }),
+      calculateAverageRetentionCurve(),
+    ]);
+
+    let ltv = 0;
+    
+    for (let month = 0; month < retentionCurve.length; month++) {
+      const retentionPercent = retentionCurve[month] / 100;
+      ltv += retentionPercent * arps;
+    }
+    
+    console.log('[LTV] Retention Revenue LTV:', ltv.toFixed(2), 'DKK');
+    console.log('[LTV] Based on ARPS:', arps.toFixed(2), 'DKK');
+    
+    return ltv;
+  }, 30 * 60 * 1000);
+}
