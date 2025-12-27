@@ -2,24 +2,16 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 import type { DashboardMetrics, AnalyticsMetrics } from '@/types';
 
-// Register font that supports Danish characters
+// Register Noto Sans font that supports Danish characters (æøå)
 Font.register({
-  family: 'Roboto',
+  family: 'NotoSans',
   fonts: [
     {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-light-webfont.ttf',
-      fontWeight: 300,
-    },
-    {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf',
+      src: 'https://fonts.gstatic.com/s/notosans/v30/o-0IIpQlx3QUlC5A4PNjXhFVZNyB.woff2',
       fontWeight: 400,
     },
     {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-medium-webfont.ttf',
-      fontWeight: 500,
-    },
-    {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf',
+      src: 'https://fonts.gstatic.com/s/notosans/v30/o-0NIpQlx3QUlC5A4PNjThZVZNyB8s4.woff2',
       fontWeight: 700,
     },
   ],
@@ -29,7 +21,7 @@ const styles = StyleSheet.create({
   page: {
     padding: 40,
     fontSize: 11,
-    fontFamily: 'Roboto',
+    fontFamily: 'NotoSans',
     backgroundColor: '#ffffff',
   },
   header: {
