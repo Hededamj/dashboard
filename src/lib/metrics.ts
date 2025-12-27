@@ -158,7 +158,7 @@ function createComparison(current: number, previous: number): MetricComparison {
  * This is the single source of truth for subscription data
  */
 async function fetchAllSubscriptions() {
-  return withCache("all-subscriptions-v1", async () => {
+  return withCache("all-subscriptions-v2", async () => {
     console.log('[Subscriptions] Fetching ALL subscriptions from Stripe...');
     const subscriptions = await stripe.subscriptions.list({
       status: "all",
