@@ -1,27 +1,12 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { DashboardMetrics, AnalyticsMetrics } from '@/types';
-
-// Register Noto Sans font that supports Danish characters (æøå)
-Font.register({
-  family: 'NotoSans',
-  fonts: [
-    {
-      src: 'https://fonts.gstatic.com/s/notosans/v30/o-0IIpQlx3QUlC5A4PNjXhFVZNyB.woff2',
-      fontWeight: 400,
-    },
-    {
-      src: 'https://fonts.gstatic.com/s/notosans/v30/o-0NIpQlx3QUlC5A4PNjThZVZNyB8s4.woff2',
-      fontWeight: 700,
-    },
-  ],
-});
 
 const styles = StyleSheet.create({
   page: {
     padding: 40,
     fontSize: 11,
-    fontFamily: 'NotoSans',
+    fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
   },
   header: {
@@ -84,7 +69,6 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: 6,
     fontWeight: 500,
-    textTransform: 'uppercase',
   },
   metricValue: {
     fontSize: 24,
@@ -165,7 +149,6 @@ const styles = StyleSheet.create({
   healthStatus: {
     fontSize: 9,
     color: '#6b7280',
-    fontStyle: 'italic',
   },
   badge: {
     paddingHorizontal: 8,
