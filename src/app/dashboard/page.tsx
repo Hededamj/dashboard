@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { MemberGrowthChart } from "@/components/dashboard/MemberGrowthChart";
@@ -12,14 +13,40 @@ import { Users, DollarSign, TrendingDown, TrendingUp } from "lucide-react";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [activity, setActivity] = useState<ActivityEvent[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("last4weeks");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [checking2FA, setChecking2FA] = useState(true);
+
+  // Check 2FA status on mount
+  useEffect(() => {
+    async function check2FAStatus() {
+      try {
+        const res = await fetch("/api/2fa/status");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.needsVerification) {
+            router.push("/2fa-verify");
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Error checking 2FA status:", err);
+      } finally {
+        setChecking2FA(false);
+      }
+    }
+
+    check2FAStatus();
+  }, [router]);
 
   useEffect(() => {
+    if (checking2FA) return; // Wait for 2FA check first
+
     async function fetchDashboardData() {
       try {
         setLoading(true);
@@ -53,7 +80,7 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData();
-  }, [selectedPeriod]);
+  }, [selectedPeriod, checking2FA]);
 
   if (loading) {
     return (
