@@ -6,6 +6,7 @@ import { MetricCard } from "@/components/dashboard/MetricCard";
 import { MemberGrowthChart } from "@/components/dashboard/MemberGrowthChart";
 import { RevenueTrendChart } from "@/components/dashboard/RevenueTrendChart";
 import { RecentActivityTable } from "@/components/dashboard/RecentActivityTable";
+import { PeriodSelector, type PeriodType } from "@/components/dashboard/PeriodSelector";
 import type { DashboardMetrics, TrendData, ActivityEvent } from "@/types";
 import { Users, DollarSign, TrendingDown, TrendingUp } from "lucide-react";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
@@ -14,6 +15,7 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [activity, setActivity] = useState<ActivityEvent[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>("last4weeks");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +26,7 @@ export default function DashboardPage() {
         setError(null);
 
         const [metricsRes, trendsRes, activityRes] = await Promise.all([
-          fetch("/api/metrics"),
+          fetch(`/api/metrics?period=${selectedPeriod}`),
           fetch("/api/trends"),
           fetch("/api/activity"),
         ]);
@@ -51,7 +53,7 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData();
-  }, []);
+  }, [selectedPeriod]);
 
   if (loading) {
     return (
@@ -105,6 +107,12 @@ export default function DashboardPage() {
       <DashboardHeader />
 
       <main className="container mx-auto px-4 py-8">
+        {/* Period Selector */}
+        <PeriodSelector
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={setSelectedPeriod}
+        />
+
         {/* Metric Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <MetricCard

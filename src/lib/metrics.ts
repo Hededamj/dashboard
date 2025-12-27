@@ -1,10 +1,136 @@
 import { stripe } from "./stripe";
 import { withCache } from "./cache";
 import type { DashboardMetrics, TrendData, ActivityEvent, MetricComparison } from "@/types";
-import { startOfMonth, subMonths, format, endOfMonth, subDays, startOfDay } from "date-fns";
+import {
+  startOfMonth,
+  subMonths,
+  format,
+  endOfMonth,
+  subDays,
+  startOfDay,
+  startOfYear,
+  startOfToday,
+  startOfYesterday,
+  endOfYesterday,
+  endOfToday,
+  subWeeks
+} from "date-fns";
 import { da } from "date-fns/locale";
 
 const MONTHLY_PRICE = 149; // DKK
+
+export type PeriodType =
+  | "today"
+  | "yesterday"
+  | "last7days"
+  | "last4weeks"
+  | "last3months"
+  | "last12months"
+  | "monthToDate"
+  | "lastMonth"
+  | "yearToDate"
+  | "allTime";
+
+interface DateRange {
+  start: Date;
+  end: Date;
+  compareStart: Date;
+  compareEnd: Date;
+}
+
+/**
+ * Calculate date ranges based on period type
+ */
+export function getDateRangeForPeriod(period: PeriodType): DateRange {
+  const now = new Date();
+  const today = startOfToday();
+
+  switch (period) {
+    case "today": {
+      const start = today;
+      const end = endOfToday();
+      const compareStart = subDays(start, 1);
+      const compareEnd = endOfYesterday();
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "yesterday": {
+      const start = startOfYesterday();
+      const end = endOfYesterday();
+      const compareStart = subDays(start, 1);
+      const compareEnd = subDays(end, 1);
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "last7days": {
+      const end = now;
+      const start = subDays(end, 7);
+      const compareEnd = start;
+      const compareStart = subDays(compareEnd, 7);
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "last4weeks": {
+      const end = now;
+      const start = subDays(end, 28);
+      const compareEnd = start;
+      const compareStart = subDays(compareEnd, 28);
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "last3months": {
+      const end = now;
+      const start = subMonths(end, 3);
+      const compareEnd = start;
+      const compareStart = subMonths(compareEnd, 3);
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "last12months": {
+      const end = now;
+      const start = subMonths(end, 12);
+      const compareEnd = start;
+      const compareStart = subMonths(compareEnd, 12);
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "monthToDate": {
+      const start = startOfMonth(now);
+      const end = now;
+      const compareStart = startOfMonth(subMonths(now, 1));
+      const compareEnd = subMonths(end, 1);
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "lastMonth": {
+      const start = startOfMonth(subMonths(now, 1));
+      const end = endOfMonth(subMonths(now, 1));
+      const compareStart = startOfMonth(subMonths(now, 2));
+      const compareEnd = endOfMonth(subMonths(now, 2));
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "yearToDate": {
+      const start = startOfYear(now);
+      const end = now;
+      const compareStart = startOfYear(subMonths(now, 12));
+      const compareEnd = subMonths(end, 12);
+      return { start, end, compareStart, compareEnd };
+    }
+
+    case "allTime": {
+      // For all time, we'll use a very old date as start
+      const start = new Date(2020, 0, 1); // Jan 1, 2020
+      const end = now;
+      const compareStart = new Date(2020, 0, 1);
+      const compareEnd = new Date(2020, 0, 1);
+      return { start, end, compareStart, compareEnd };
+    }
+
+    default:
+      return getDateRangeForPeriod("last4weeks");
+  }
+}
 
 /**
  * Calculate percentage change between current and previous values
@@ -306,10 +432,10 @@ export async function calculateTotalRevenue(): Promise<number> {
 }
 
 /**
- * Get all dashboard metrics with 4-week period comparisons
+ * Get all dashboard metrics with period-based comparisons
  */
-export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  return withCache("dashboard-metrics", async () => {
+export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Promise<DashboardMetrics> {
+  return withCache(`dashboard-metrics-${period}`, async () => {
     const [
       currentMembers,
       payingMembers,
@@ -332,14 +458,14 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       calculateGrowthRate(),
     ]);
 
-    // Calculate 4-week period comparisons
-    const now = new Date();
-    const fourWeeksAgo = subDays(now, 28);
-    const eightWeeksAgo = subDays(now, 56);
+    // Get date ranges based on selected period
+    const dateRange = getDateRangeForPeriod(period);
 
     const [currentPeriodSignups, previousPeriodSignups] = await Promise.all([
-      getSignupsForPeriod(fourWeeksAgo, now),
-      getSignupsForPeriod(eightWeeksAgo, fourWeeksAgo),
+      getSignupsForPeriod(dateRange.start, dateRange.end),
+      period === "allTime"
+        ? Promise.resolve(0) // No comparison for all time
+        : getSignupsForPeriod(dateRange.compareStart, dateRange.compareEnd),
     ]);
 
     // MRR comparison (estimate based on new signups)
@@ -356,7 +482,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       cancellationsThisMonth,
       churnRate,
       growthRate,
-      // 4-week period comparisons
+      // Period-based comparisons
       newSignupsComparison: createComparison(currentPeriodSignups, previousPeriodSignups),
       mrrComparison: createComparison(currentPeriodMRR, previousPeriodMRR),
     };
