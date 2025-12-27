@@ -14,9 +14,7 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "Bash(npx:*)",
-      "Bash(npm install:*)",
-      "WebFetch(domain:developer.mobilepay.dk)",
-      "WebSearch"
+      "Bash(npm install:*)"
     ]
   }
 }

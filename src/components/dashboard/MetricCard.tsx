@@ -37,11 +37,11 @@ export function MetricCard({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium font-['Montserrat'] text-[#54595F]">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-[#86A0A6]" />
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold font-['Advent_Pro'] text-[#86A0A6]">{value}</div>
+        <div className="text-2xl font-bold">{value}</div>
 
         {/* Period comparison */}
         {comparison && (
