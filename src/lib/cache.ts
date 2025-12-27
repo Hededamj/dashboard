@@ -1,95 +1,54 @@
-interface CacheEntry<T> {
-  data: T;
-  expiry: number;
-}
+import { kv } from "@vercel/kv";
 
-class SimpleCache {
-  private cache: Map<string, CacheEntry<any>>;
-  private defaultTTL: number;
+const DEFAULT_TTL_SECONDS = 30 * 60; // 30 minutes
 
-  constructor(defaultTTLMinutes: number = 5) {
-    this.cache = new Map();
-    this.defaultTTL = defaultTTLMinutes * 60 * 1000; // Convert to milliseconds
-  }
-
-  set<T>(key: string, data: T, ttl?: number): void {
-    const expiryTime = Date.now() + (ttl || this.defaultTTL);
-    this.cache.set(key, { data, expiry: expiryTime });
-  }
-
-  get<T>(key: string): T | null {
-    const entry = this.cache.get(key);
-
-    if (!entry) {
-      return null;
-    }
-
-    // Check if expired
-    if (Date.now() > entry.expiry) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.data as T;
-  }
-
-  has(key: string): boolean {
-    const entry = this.cache.get(key);
-
-    if (!entry) {
-      return false;
-    }
-
-    // Check if expired
-    if (Date.now() > entry.expiry) {
-      this.cache.delete(key);
-      return false;
-    }
-
-    return true;
-  }
-
-  delete(key: string): void {
-    this.cache.delete(key);
-  }
-
-  clear(): void {
-    this.cache.clear();
-  }
-
-  // Clean up expired entries
-  cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
-      if (now > entry.expiry) {
-        this.cache.delete(key);
-      }
-    }
-  }
-}
-
-// Export a singleton instance
-export const cache = new SimpleCache(5); // 5 minutes default TTL
-
-// Helper function for cache-wrapped async operations
+// Helper function for cache-wrapped async operations using Vercel KV
 export async function withCache<T>(
   key: string,
   fetcher: () => Promise<T>,
-  ttl?: number
+  ttlMs?: number
 ): Promise<T> {
-  // Check cache first
-  const cached = cache.get<T>(key);
-  if (cached !== null) {
-    return cached;
+  try {
+    // Check KV cache first
+    const cached = await kv.get<T>(`cache:${key}`);
+    if (cached !== null) {
+      console.log(`[Cache HIT] ${key}`);
+      return cached;
+    }
+
+    console.log(`[Cache MISS] ${key}`);
+
+    // Fetch fresh data
+    const data = await fetcher();
+
+    // Store in KV cache with TTL (convert ms to seconds)
+    const ttlSeconds = ttlMs ? Math.floor(ttlMs / 1000) : DEFAULT_TTL_SECONDS;
+    await kv.setex(`cache:${key}`, ttlSeconds, data);
+
+    return data;
+  } catch (error) {
+    console.error(`[Cache ERROR] ${key}:`, error);
+    // If KV fails, just fetch the data without caching
+    return await fetcher();
   }
-
-  // Fetch fresh data
-  const data = await fetcher();
-
-  // Store in cache
-  cache.set(key, data, ttl);
-
-  return data;
 }
 
-export default cache;
+// Clear specific cache key
+export async function clearCache(key: string): Promise<void> {
+  try {
+    await kv.del(`cache:${key}`);
+  } catch (error) {
+    console.error(`[Cache CLEAR ERROR] ${key}:`, error);
+  }
+}
+
+// Clear all cache with specific prefix
+export async function clearCachePattern(pattern: string): Promise<void> {
+  try {
+    // Note: This requires getting all keys and deleting them
+    // For now, we'll just log - full pattern matching needs more complex logic
+    console.log(`[Cache] Clear pattern not fully implemented: ${pattern}`);
+  } catch (error) {
+    console.error(`[Cache PATTERN ERROR] ${pattern}:`, error);
+  }
+}

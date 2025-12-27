@@ -491,12 +491,11 @@ export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Pr
 
 /**
  * Get growth trends for last 12 months
- * Fetches ALL subscriptions once, then calculates monthly stats
+ * Fetches subscriptions with reasonable limit, then calculates monthly stats
  */
 export async function getGrowthTrends(): Promise<TrendData[]> {
-  return withCache("growth-trends-v2", async () => {
-    // Fetch ALL subscriptions (no limit)
-    console.log('[Trends] Fetching all subscriptions...');
+  return withCache("growth-trends-v3", async () => {
+    console.log('[Trends] Fetching subscriptions...');
     const allSubs = await stripe.subscriptions.list({
       limit: 100,
       status: "all",
@@ -505,9 +504,10 @@ export async function getGrowthTrends(): Promise<TrendData[]> {
     let allSubscriptions = allSubs.data;
     let hasMore = allSubs.has_more;
     let pageCount = 1;
+    const MAX_PAGES = 50; // Limit to 5000 subscriptions max for performance
 
-    // Paginate to get ALL subscriptions (removed 5000 limit)
-    while (hasMore) {
+    // Paginate with reasonable limit
+    while (hasMore && pageCount < MAX_PAGES) {
       const nextPage = await stripe.subscriptions.list({
         limit: 100,
         status: "all",
@@ -561,7 +561,7 @@ export async function getGrowthTrends(): Promise<TrendData[]> {
 
     console.log('[Trends] Calculated trends for 12 months');
     return trends;
-  }, 10 * 60 * 1000); // Cache for 10 minutes (longer because this is expensive)
+  }, 60 * 60 * 1000); // Cache for 1 hour (trends don't change often)
 }
 
 /**
