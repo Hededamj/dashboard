@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import {
   verifyTOTP,
   get2FAData,
+  store2FAData,
   storeTrustedDevice,
   createDeviceFingerprint,
   type TrustedDevice,
