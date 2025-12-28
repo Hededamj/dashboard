@@ -1,34 +1,41 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { startOfMonth, format, differenceInDays, differenceInMonths } from "date-fns";
+import { withCache } from "@/lib/metrics";
 
 export async function GET() {
   try {
     console.log('[Member Insights] Starting analysis...');
 
-    // Fetch all subscriptions with customer data
-    const subscriptions = await stripe.subscriptions.list({
-      status: "all",
-      limit: 100,
-      expand: ["data.customer"],
-    });
-
-    let allSubs = subscriptions.data;
-    let hasMore = subscriptions.has_more;
-    let pageCount = 1;
-
-    while (hasMore && pageCount < 50) {
-      const nextPage = await stripe.subscriptions.list({
+    // Fetch all subscriptions with customer data (cached for 5 minutes)
+    const allSubs = await withCache("member-insights-subs-v1", async () => {
+      const subscriptions = await stripe.subscriptions.list({
         status: "all",
         limit: 100,
-        starting_after: allSubs[allSubs.length - 1].id,
         expand: ["data.customer"],
       });
 
-      allSubs = [...allSubs, ...nextPage.data];
-      hasMore = nextPage.has_more;
-      pageCount++;
-    }
+      let allSubs = subscriptions.data;
+      let hasMore = subscriptions.has_more;
+      let pageCount = 1;
+
+      // Limit to 20 pages (2000 subscriptions) for better performance
+      while (hasMore && pageCount < 20) {
+        const nextPage = await stripe.subscriptions.list({
+          status: "all",
+          limit: 100,
+          starting_after: allSubs[allSubs.length - 1].id,
+          expand: ["data.customer"],
+        });
+
+        allSubs = [...allSubs, ...nextPage.data];
+        hasMore = nextPage.has_more;
+        pageCount++;
+      }
+
+      console.log(`[Member Insights] Fetched ${allSubs.length} subscriptions`);
+      return allSubs;
+    }, 300); // Cache for 5 minutes
 
     console.log(`[Member Insights] Analyzing ${allSubs.length} subscriptions`);
 
