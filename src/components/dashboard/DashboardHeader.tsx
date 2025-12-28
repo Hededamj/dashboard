@@ -3,7 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, BarChart3, LayoutDashboard, Users } from "lucide-react";
+import { LogOut, BarChart3, LayoutDashboard, Users, Bot } from "lucide-react";
 
 export function DashboardHeader() {
   const { data: session } = useSession();
@@ -12,6 +12,7 @@ export function DashboardHeader() {
 
   const isAnalytics = pathname?.includes("/analytics");
   const isInsights = pathname?.includes("/insights");
+  const isChat = pathname?.includes("/chat");
 
   return (
     <header className="border-b bg-white">
@@ -51,7 +52,7 @@ export function DashboardHeader() {
           <button
             onClick={() => router.push("/dashboard")}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              !isAnalytics && !isInsights
+              !isAnalytics && !isInsights && !isChat
                 ? "border-indigo-600 text-indigo-600"
                 : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
             }`}
@@ -80,6 +81,17 @@ export function DashboardHeader() {
           >
             <Users className="h-4 w-4" />
             Insights
+          </button>
+          <button
+            onClick={() => router.push("/dashboard/chat")}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              isChat
+                ? "border-indigo-600 text-indigo-600"
+                : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+            }`}
+          >
+            <Bot className="h-4 w-4" />
+            AI Chat
           </button>
         </nav>
       </div>
