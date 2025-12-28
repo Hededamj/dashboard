@@ -111,9 +111,14 @@ export async function GET() {
 
       if (!customers.has(customerId)) {
         const customerData = typeof sub.customer === "string" ? null : sub.customer;
+        const email =
+          customerData && !customerData.deleted && 'email' in customerData
+            ? customerData.email || "unknown"
+            : "unknown";
+
         customers.set(customerId, {
           id: customerId,
-          email: customerData?.email || "unknown",
+          email,
           created: sub.created,
           status: sub.status,
         });
