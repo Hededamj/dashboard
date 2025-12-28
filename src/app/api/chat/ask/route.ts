@@ -261,6 +261,11 @@ export async function POST(request: Request) {
       );
     }
 
+    // Debug logging
+    console.log("API Key exists:", !!process.env.ANTHROPIC_API_KEY);
+    console.log("API Key prefix:", process.env.ANTHROPIC_API_KEY?.substring(0, 15));
+    console.log("API Key length:", process.env.ANTHROPIC_API_KEY?.length);
+
     const { question, history = [] } = await request.json();
 
     if (!question) {
@@ -347,6 +352,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ answer });
   } catch (error: any) {
     console.error("Chat error:", error);
+    console.error("Error details:", JSON.stringify(error, null, 2));
+    console.error("Error status:", error.status);
+    console.error("Error response:", error.error);
     return NextResponse.json(
       {
         error: error.message || "Der skete en fejl ved behandling af dit spørgsmål",
