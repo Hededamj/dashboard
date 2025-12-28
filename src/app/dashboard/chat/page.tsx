@@ -15,9 +15,9 @@ export default function ChatPage() {
         <div className="mb-6">
           <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
             <Bot className="h-8 w-8 text-indigo-600" />
-            AI Assistent
+            MyMind
           </h2>
-          <p className="text-gray-600">Stil spørgsmål om dine medlemmer, betalinger og metrics</p>
+          <p className="text-gray-600">Din personlige assistent til FamilyMind data</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -82,10 +82,10 @@ export default function ChatPage() {
               </CardHeader>
               <CardContent className="text-xs text-gray-600 space-y-2">
                 <p>
-                  Bruger Claude 3.5 Sonnet til at forstå dine spørgsmål og hente data fra Stripe.
+                  Bruger Claude Sonnet 4.5 til at forstå dine spørgsmål og hente data fra Stripe.
                 </p>
                 <p>
-                  AI'en har adgang til:
+                  MyMind har adgang til:
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-xs">
                   <li>Kunde søgning</li>

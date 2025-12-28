@@ -16,7 +16,7 @@ export function ChatInterface() {
     {
       role: "assistant",
       content:
-        "Hej! Jeg er din AI assistent. Stil mig spørgsmål om dine medlemmer, betalinger, churn, osv. Prøv f.eks. 'Hvad får jeg udbetalt næste uge?' eller 'Hvem churned i december?'",
+        "Hej! Jeg er MyMind - din personlige assistent til FamilyMind data. Stil mig spørgsmål om dine medlemmer, betalinger, churn, osv. Prøv f.eks. 'Hvad får jeg udbetalt næste uge?' eller 'Hvem churned i december?'",
       timestamp: new Date(),
     },
   ]);
@@ -101,7 +101,7 @@ export function ChatInterface() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-indigo-600" />
-          AI Assistent
+          MyMind
         </CardTitle>
       </CardHeader>
 

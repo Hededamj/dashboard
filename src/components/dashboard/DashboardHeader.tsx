@@ -91,7 +91,7 @@ export function DashboardHeader() {
             }`}
           >
             <Bot className="h-4 w-4" />
-            AI Chat
+            MyMind
           </button>
         </nav>
       </div>
