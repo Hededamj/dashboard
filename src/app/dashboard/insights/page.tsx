@@ -1,0 +1,358 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { AlertTriangle, TrendingDown, Users, Mail, Calendar, Target } from "lucide-react";
+
+interface MemberInsights {
+  churnAnalysis: {
+    totalCanceled: number;
+    avgLifetimeDays: number;
+    avgLifetimeMonths: number;
+    churnByLifetime: Record<string, number>;
+    churnByCohort: Record<string, { total: number; canceled: number; churnRate: number }>;
+    riskIndicators: {
+      scheduledCancellations: number;
+      pastDue: number;
+      totalAtRisk: number;
+    };
+  };
+  memberProfiles: {
+    totalUniqueCustomers: number;
+    emailAnalysis: {
+      privateEmails: number;
+      businessEmails: number;
+      privatePercentage: string;
+      topDomains: Record<string, number>;
+    };
+    signupTrends: Record<string, number>;
+    trialAnalysis: {
+      currentActiveTrials: number;
+      totalTrialsEver: number;
+      convertedTrials: number;
+      conversionRate: string;
+    };
+  };
+  generatedAt: string;
+}
+
+const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#06b6d4"];
+
+export default function MemberInsightsPage() {
+  const [insights, setInsights] = useState<MemberInsights | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchInsights() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const res = await fetch("/api/member-insights");
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch member insights");
+        }
+
+        const data = await res.json();
+        setInsights(data);
+      } catch (err) {
+        console.error("Error fetching insights:", err);
+        setError("Kunne ikke hente member insights. Prøv igen senere.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchInsights();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <DashboardHeader />
+        <main className="container mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-8"></div>
+            <div className="grid gap-4 md:grid-cols-3 mb-8">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-32 bg-white border rounded-lg" />
+              ))}
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 mb-8">
+              <div className="h-96 bg-white border rounded-lg" />
+              <div className="h-96 bg-white border rounded-lg" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !insights) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <DashboardHeader />
+        <main className="container mx-auto px-4 py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h3 className="font-semibold mb-2 text-red-800">Fejl</h3>
+            <p className="text-red-700">{error}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Prepare chart data
+  const churnLifetimeData = Object.entries(insights.churnAnalysis.churnByLifetime).map(
+    ([period, count]) => ({
+      period,
+      count,
+    })
+  );
+
+  const churnCohortData = Object.entries(insights.churnAnalysis.churnByCohort)
+    .map(([month, data]) => ({
+      month,
+      churnRate: parseFloat(data.churnRate.toFixed(1)),
+      total: data.total,
+      canceled: data.canceled,
+    }))
+    .reverse(); // Oldest to newest
+
+  const emailData = [
+    { name: "Private", value: insights.memberProfiles.emailAnalysis.privateEmails },
+    { name: "Business", value: insights.memberProfiles.emailAnalysis.businessEmails },
+  ];
+
+  const topDomainsData = Object.entries(insights.memberProfiles.emailAnalysis.topDomains)
+    .map(([domain, count]) => ({
+      domain,
+      count,
+    }))
+    .slice(0, 8);
+
+  const signupTrendsData = Object.entries(insights.memberProfiles.signupTrends)
+    .map(([month, count]) => ({
+      month,
+      signups: count,
+    }))
+    .reverse();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DashboardHeader />
+
+      <main className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold text-gray-900">Medlem Insights</h2>
+          <p className="text-gray-600">Churn analyse og medlems profiler</p>
+        </div>
+
+        {/* Risk Indicators */}
+        <div className="grid gap-4 md:grid-cols-3 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Churned</CardTitle>
+              <TrendingDown className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {insights.churnAnalysis.totalCanceled}
+              </div>
+              <p className="text-xs text-gray-500">
+                Gns. levetid: {insights.churnAnalysis.avgLifetimeMonths} måneder
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">At Risk</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">
+                {insights.churnAnalysis.riskIndicators.totalAtRisk}
+              </div>
+              <p className="text-xs text-gray-500">
+                {insights.churnAnalysis.riskIndicators.scheduledCancellations} scheduled,{" "}
+                {insights.churnAnalysis.riskIndicators.pastDue} past due
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Trial Conversion</CardTitle>
+              <Target className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {insights.memberProfiles.trialAnalysis.conversionRate}%
+              </div>
+              <p className="text-xs text-gray-500">
+                {insights.memberProfiles.trialAnalysis.convertedTrials} /{" "}
+                {insights.memberProfiles.trialAnalysis.totalTrialsEver} trials
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Churn Analysis */}
+        <div className="mb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">🔴 Churn Analyse</h3>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Churn by Lifetime */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Hvornår dropper medlemmer ud?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={churnLifetimeData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="period" angle={-45} textAnchor="end" height={80} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#ef4444" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Churn by Cohort */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Churn Rate per Cohort</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={churnCohortData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="churnRate"
+                      stroke="#ef4444"
+                      strokeWidth={2}
+                      name="Churn Rate %"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Member Profiles */}
+        <div className="mb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">👥 Medlem Profiler</h3>
+
+          <div className="grid gap-4 md:grid-cols-2 mb-4">
+            {/* Email Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Private vs. Business Emails</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={emailData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {emailData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <p className="text-sm text-gray-600 text-center mt-2">
+                  {insights.memberProfiles.emailAnalysis.privatePercentage}% private emails
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Top Email Domains */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Email Domæner</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={topDomainsData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="domain" type="category" width={100} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#3b82f6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Signup Trends */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Signup Trends (Sidste 12 måneder)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={signupTrendsData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="signups"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    name="Nye Signups"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-sm text-gray-500">
+          Genereret: {new Date(insights.generatedAt).toLocaleString("da-DK")}
+        </div>
+      </main>
+    </div>
+  );
+}

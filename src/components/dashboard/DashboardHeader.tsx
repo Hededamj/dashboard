@@ -3,7 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, BarChart3, LayoutDashboard } from "lucide-react";
+import { LogOut, BarChart3, LayoutDashboard, Users } from "lucide-react";
 
 export function DashboardHeader() {
   const { data: session } = useSession();
@@ -11,6 +11,7 @@ export function DashboardHeader() {
   const router = useRouter();
 
   const isAnalytics = pathname?.includes("/analytics");
+  const isInsights = pathname?.includes("/insights");
 
   return (
     <header className="border-b bg-white">
@@ -50,7 +51,7 @@ export function DashboardHeader() {
           <button
             onClick={() => router.push("/dashboard")}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              !isAnalytics
+              !isAnalytics && !isInsights
                 ? "border-indigo-600 text-indigo-600"
                 : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
             }`}
@@ -68,6 +69,17 @@ export function DashboardHeader() {
           >
             <BarChart3 className="h-4 w-4" />
             Analytics
+          </button>
+          <button
+            onClick={() => router.push("/dashboard/insights")}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              isInsights
+                ? "border-indigo-600 text-indigo-600"
+                : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            Insights
           </button>
         </nav>
       </div>
