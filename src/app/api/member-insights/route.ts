@@ -19,8 +19,8 @@ export async function GET() {
       let hasMore = subscriptions.has_more;
       let pageCount = 1;
 
-      // Limit to 20 pages (2000 subscriptions) for better performance
-      while (hasMore && pageCount < 20) {
+      // Limit to 10 pages (1000 subscriptions) for better performance
+      while (hasMore && pageCount < 10) {
         const nextPage = await stripe.subscriptions.list({
           status: "all",
           limit: 100,

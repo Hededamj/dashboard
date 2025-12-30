@@ -89,14 +89,21 @@ export default function MemberInsightsPage() {
       <div className="min-h-screen bg-gray-50">
         <DashboardHeader />
         <main className="container mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-64 mb-8"></div>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mb-4"></div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Henter insights fra Stripe...</h2>
+            <p className="text-gray-600 text-center max-w-md">
+              Dette kan tage 15-30 sekunder første gang.<br />
+              Næste gang er det instant! ⚡
+            </p>
+          </div>
+          <div className="animate-pulse mt-8">
             <div className="grid gap-4 md:grid-cols-3 mb-8">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-32 bg-white border rounded-lg" />
               ))}
             </div>
-            <div className="grid gap-4 md:grid-cols-2 mb-8">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="h-96 bg-white border rounded-lg" />
               <div className="h-96 bg-white border rounded-lg" />
             </div>
