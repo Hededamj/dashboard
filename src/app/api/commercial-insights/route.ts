@@ -95,6 +95,11 @@ export async function GET() {
         });
       });
 
+      // Calculate YTD metrics
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      const monthsElapsed = Math.max(1, now.getMonth() + 1); // At least 1 month
+
       return {
         currentMRR: Math.round(currentMRR),
         projectedNextMonth: Math.round(currentMRR), // Same as current MRR
@@ -103,36 +108,80 @@ export async function GET() {
         revenueByInterval,
         subscriptionsByInterval: subsByInterval,
         totalActiveSubscriptions: liveSubs.length,
+        monthsElapsed,
       };
     }, 600); // 10 minutes
 
-    // Fetch recent transactions (cached for 5 minutes)
-    const transactionData = await withCache("commercial-transactions-v1", async () => {
-      const charges = await stripe.charges.list({
+    // Fetch YTD revenue and projections (cached for 10 minutes)
+    const transactionData = await withCache("commercial-transactions-v2", async () => {
+      // Get YTD charges
+      const now = new Date();
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      const startOfYearTimestamp = Math.floor(startOfYear.getTime() / 1000);
+
+      const ytdCharges = await stripe.charges.list({
+        created: { gte: startOfYearTimestamp },
         limit: 100,
       });
 
-      // Group by month for trend
-      const revenueByMonth: Record<string, number> = {};
+      // Fetch all YTD charges (up to 1000)
+      let allCharges = ytdCharges.data;
+      let hasMore = ytdCharges.has_more;
+      let pageCount = 1;
 
-      charges.data
+      while (hasMore && pageCount < 10) {
+        const nextPage = await stripe.charges.list({
+          created: { gte: startOfYearTimestamp },
+          limit: 100,
+          starting_after: allCharges[allCharges.length - 1].id,
+        });
+        allCharges = [...allCharges, ...nextPage.data];
+        hasMore = nextPage.has_more;
+        pageCount++;
+      }
+
+      // Calculate YTD revenue
+      const ytdRevenue = allCharges
+        .filter((charge) => charge.paid && charge.livemode)
+        .reduce((sum, charge) => sum + charge.amount / 100, 0);
+
+      const monthsElapsed = Math.max(1, now.getMonth() + 1);
+      const avgRevenuePerMonthYTD = ytdRevenue / monthsElapsed;
+
+      // Group by month for trend analysis
+      const revenueByMonth: Record<string, number> = {};
+      allCharges
         .filter((charge) => charge.paid && charge.livemode)
         .forEach((charge) => {
           const month = format(new Date(charge.created * 1000), "MMM yyyy");
           revenueByMonth[month] = (revenueByMonth[month] || 0) + charge.amount / 100;
         });
 
+      // Calculate growth trend (simple linear regression)
+      const monthlyValues = Object.entries(revenueByMonth)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([_, value]) => value);
+
+      let growthRate = 0;
+      if (monthlyValues.length >= 2) {
+        const firstMonth = monthlyValues[0] || 0;
+        const lastMonth = monthlyValues[monthlyValues.length - 1] || 0;
+        growthRate = firstMonth > 0 ? ((lastMonth - firstMonth) / firstMonth) * 100 : 0;
+      }
+
+      // Project 12 months forward based on current MRR and growth
+      const currentMRR = await calculateMRR();
+      const monthlyGrowthRate = growthRate / monthlyValues.length; // Average monthly growth
+      const projectedRevenue12Months = currentMRR * 12 * (1 + monthlyGrowthRate / 100);
+
       return {
-        recentCharges: charges.data.slice(0, 5).map((charge) => ({
-          id: charge.id,
-          amount: charge.amount / 100,
-          currency: charge.currency,
-          created: new Date(charge.created * 1000).toISOString(),
-          status: charge.status,
-        })),
+        ytdRevenue: Math.round(ytdRevenue),
+        avgRevenuePerMonthYTD: Math.round(avgRevenuePerMonthYTD),
+        projectedRevenue12Months: Math.round(projectedRevenue12Months),
+        growthRate: Math.round(growthRate * 10) / 10,
         revenueByMonth,
       };
-    }, 300); // 5 minutes
+    }, 600); // 10 minutes
 
     console.log("[Commercial Insights] Analysis complete");
 

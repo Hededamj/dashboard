@@ -43,13 +43,10 @@ interface CommercialInsights {
     totalActiveSubscriptions: number;
   };
   transactions: {
-    recentCharges: Array<{
-      id: string;
-      amount: number;
-      currency: string;
-      created: string;
-      status: string;
-    }>;
+    ytdRevenue: number;
+    avgRevenuePerMonthYTD: number;
+    projectedRevenue12Months: number;
+    growthRate: number;
     revenueByMonth: Record<string, number>;
   };
   generatedAt: string;
@@ -331,26 +328,35 @@ export default function CommercialInsightsPage() {
         {/* Summary Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Summary</CardTitle>
+            <CardTitle>Revenue Forecast & YTD</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="border-r pr-4">
-                <p className="text-sm text-gray-600 mb-1">Månedlig Revenue</p>
+                <p className="text-sm text-gray-600 mb-1">Gns. Revenue/Måned (YTD)</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {insights.revenue.monthlyRevenue.toLocaleString("da-DK")} kr.
+                  {insights.transactions.avgRevenuePerMonthYTD.toLocaleString("da-DK")} kr.
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Total YTD: {insights.transactions.ytdRevenue.toLocaleString("da-DK")} kr.
                 </p>
               </div>
               <div className="border-r pr-4">
-                <p className="text-sm text-gray-600 mb-1">Årlig Revenue</p>
+                <p className="text-sm text-gray-600 mb-1">Projected 12 Måneder</p>
                 <p className="text-2xl font-bold text-purple-600">
-                  {insights.revenue.yearlyRevenue.toLocaleString("da-DK")} kr.
+                  {insights.transactions.projectedRevenue12Months.toLocaleString("da-DK")} kr.
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Baseret på nuværende trend
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Aktive Subscriptions</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {insights.revenue.totalActiveSubscriptions}
+                <p className="text-sm text-gray-600 mb-1">Vækst Rate</p>
+                <p className={`text-2xl font-bold ${insights.transactions.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {insights.transactions.growthRate > 0 ? '+' : ''}{insights.transactions.growthRate}%
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  YTD growth trend
                 </p>
               </div>
             </div>
