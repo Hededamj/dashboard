@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { withCache } from "@/lib/metrics";
+import { withCache } from "@/lib/cache";
 import { startOfMonth, endOfMonth, addMonths, format } from "date-fns";
 
 export async function GET() {

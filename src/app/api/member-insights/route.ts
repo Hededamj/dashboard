@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { startOfMonth, format, differenceInDays, differenceInMonths } from "date-fns";
-import { withCache } from "@/lib/metrics";
+import { withCache } from "@/lib/cache";
 
 export async function GET() {
   try {
