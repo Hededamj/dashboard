@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { withCache } from "@/lib/cache";
+import { calculateMRR } from "@/lib/metrics";
 import { startOfMonth, endOfMonth, addMonths, format } from "date-fns";
 
 export async function GET() {
@@ -28,9 +29,12 @@ export async function GET() {
       };
     }, 300); // 5 minutes
 
-    // Fetch subscription revenue data (cached for 10 minutes)
-    const revenueData = await withCache("commercial-revenue-v1", async () => {
-      // Get active subscriptions
+    // Fetch subscription revenue data (using same MRR calc as dashboard)
+    const revenueData = await withCache("commercial-revenue-v2", async () => {
+      // Use same MRR calculation as dashboard for consistency
+      const currentMRR = await calculateMRR();
+
+      // Get active subscriptions for breakdown analysis
       const subscriptions = await stripe.subscriptions.list({
         status: "active",
         limit: 100,
@@ -58,13 +62,16 @@ export async function GET() {
       // Filter live mode only
       const liveSubs = allActiveSubs.filter((sub) => sub.livemode === true);
 
-      // Calculate MRR and breakdown
-      let totalMRR = 0;
+      // Calculate revenue breakdown (for charts)
       let monthlyRevenue = 0;
-      let halfYearRevenue = 0;
       let yearlyRevenue = 0;
 
       const revenueByInterval: Record<string, number> = {
+        month: 0,
+        year: 0,
+      };
+
+      const subsByInterval: Record<string, number> = {
         month: 0,
         year: 0,
       };
@@ -78,35 +85,19 @@ export async function GET() {
 
           if (interval === "month") {
             monthlyRevenue += amount * quantity;
-            totalMRR += amount * quantity;
             revenueByInterval.month += amount * quantity;
+            subsByInterval.month += 1;
           } else if (interval === "year") {
             yearlyRevenue += amount * quantity;
-            totalMRR += (amount * quantity) / 12;
             revenueByInterval.year += amount * quantity;
+            subsByInterval.year += 1;
           }
         });
       });
 
-      // Count subscriptions by interval
-      const subsByInterval: Record<string, number> = {
-        month: 0,
-        year: 0,
-      };
-
-      liveSubs.forEach((sub) => {
-        sub.items.data.forEach((item) => {
-          const interval = item.price.recurring?.interval || "month";
-          subsByInterval[interval] = (subsByInterval[interval] || 0) + 1;
-        });
-      });
-
-      // Calculate projected revenue for next month
-      const projectedNextMonth = totalMRR;
-
       return {
-        currentMRR: Math.round(totalMRR),
-        projectedNextMonth: Math.round(projectedNextMonth),
+        currentMRR: Math.round(currentMRR),
+        projectedNextMonth: Math.round(currentMRR), // Same as current MRR
         monthlyRevenue: Math.round(monthlyRevenue),
         yearlyRevenue: Math.round(yearlyRevenue),
         revenueByInterval,
