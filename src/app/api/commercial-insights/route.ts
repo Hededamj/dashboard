@@ -73,16 +73,17 @@ export async function GET() {
         sub.items.data.forEach((item) => {
           const price = item.price;
           const amount = (price.unit_amount || 0) / 100;
+          const quantity = item.quantity || 1;
           const interval = price.recurring?.interval || "month";
 
           if (interval === "month") {
-            monthlyRevenue += amount * item.quantity;
-            totalMRR += amount * item.quantity;
-            revenueByInterval.month += amount * item.quantity;
+            monthlyRevenue += amount * quantity;
+            totalMRR += amount * quantity;
+            revenueByInterval.month += amount * quantity;
           } else if (interval === "year") {
-            yearlyRevenue += amount * item.quantity;
-            totalMRR += (amount * item.quantity) / 12;
-            revenueByInterval.year += amount * item.quantity;
+            yearlyRevenue += amount * quantity;
+            totalMRR += (amount * quantity) / 12;
+            revenueByInterval.year += amount * quantity;
           }
         });
       });
