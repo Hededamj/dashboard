@@ -47,7 +47,6 @@ interface CommercialInsights {
     avgRevenuePerMonthYTD: number;
     projectedRevenue12Months: number;
     growthRate: number;
-    revenueByMonth: Record<string, number>;
     projectedMonths: Record<string, { actual?: number; projected?: number }>;
   };
   generatedAt: string;
