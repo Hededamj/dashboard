@@ -117,37 +117,40 @@ export async function GET() {
     }, 600); // 10 minutes
 
     // Fetch YTD revenue and projections (cached for 10 minutes)
-    const transactionData = await withCache("commercial-transactions-v2", async () => {
-      // Get YTD charges
+    const transactionData = await withCache("commercial-transactions-v3", async () => {
+      // Get YTD paid invoices (more accurate than charges for subscriptions)
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1);
       const startOfYearTimestamp = Math.floor(startOfYear.getTime() / 1000);
 
-      const ytdCharges = await stripe.charges.list({
+      const ytdInvoices = await stripe.invoices.list({
         created: { gte: startOfYearTimestamp },
+        status: "paid",
         limit: 100,
       });
 
-      // Fetch all YTD charges (up to 1000)
-      let allCharges = ytdCharges.data;
-      let hasMore = ytdCharges.has_more;
+      // Fetch all YTD invoices (up to 1000)
+      let allInvoices = ytdInvoices.data;
+      let hasMore = ytdInvoices.has_more;
       let pageCount = 1;
 
       while (hasMore && pageCount < 10) {
-        const nextPage = await stripe.charges.list({
+        const nextPage = await stripe.invoices.list({
           created: { gte: startOfYearTimestamp },
+          status: "paid",
           limit: 100,
-          starting_after: allCharges[allCharges.length - 1].id,
+          starting_after: allInvoices[allInvoices.length - 1].id,
         });
-        allCharges = [...allCharges, ...nextPage.data];
+        allInvoices = [...allInvoices, ...nextPage.data];
         hasMore = nextPage.has_more;
         pageCount++;
       }
 
-      // Calculate YTD revenue
-      const ytdRevenue = allCharges
-        .filter((charge) => charge.paid && charge.livemode)
-        .reduce((sum, charge) => sum + charge.amount / 100, 0);
+      // Calculate YTD revenue from paid invoices (live mode only)
+      const liveInvoices = allInvoices.filter((inv) => inv.livemode === true);
+      const ytdRevenue = liveInvoices.reduce((sum, inv) => sum + (inv.amount_paid || 0) / 100, 0);
+
+      console.log(`[Commercial Insights] YTD: ${allInvoices.length} total invoices, ${liveInvoices.length} live invoices, ${ytdRevenue} kr total`);
 
       const monthsElapsed = Math.max(1, now.getMonth() + 1);
       const avgRevenuePerMonthYTD = ytdRevenue / monthsElapsed;
