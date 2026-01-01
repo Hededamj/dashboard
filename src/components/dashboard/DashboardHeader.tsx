@@ -19,13 +19,21 @@ export function DashboardHeader() {
     <header className="border-b bg-white">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              FamilyMind Dashboard <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">v2.1</span>
-            </h1>
-            <p className="text-sm text-gray-500">
-              Oversigt over medlemmer og økonomi
-            </p>
+          <div className="flex items-center gap-4">
+            <img
+              src="https://mettehummel.dk/wp-content/uploads/2022/01/61f90d613911e_1643711841_mette-logo-2021-hvid.png"
+              alt="Mette Hummel Logo"
+              className="h-12 w-auto"
+              style={{ filter: 'invert(1)' }}
+            />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                FamilyMind Dashboard <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">v2.1</span>
+              </h1>
+              <p className="text-sm text-gray-500">
+                Oversigt over medlemmer og økonomi
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
