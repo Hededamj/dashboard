@@ -207,22 +207,43 @@ export default function CommercialInsightsPage() {
           </Card>
         </div>
 
-        {/* Charts Row 1 */}
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          {/* Upcoming Payouts */}
+        {/* Payouts Row */}
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
+          {/* Next Payout */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-green-600" />
-                Kommende Udbetalinger
+                Næste Udbetaling
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-600 mb-2">Pending Balance</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {insights.payouts.pendingBalance.toLocaleString("da-DK")} kr.
+                </p>
+                <p className="text-xs text-gray-500 mt-3">
+                  Kommer inden for 1-7 dage
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Payouts */}
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-blue-600" />
+                Seneste Udbetalinger
               </CardTitle>
             </CardHeader>
             <CardContent>
               {insights.payouts.upcomingPayouts.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">Ingen planlagte udbetalinger</p>
+                <p className="text-gray-500 text-center py-4">Ingen udbetalinger endnu</p>
               ) : (
                 <div className="space-y-3">
-                  {insights.payouts.upcomingPayouts.slice(0, 5).map((payout) => (
+                  {insights.payouts.upcomingPayouts.slice(0, 3).map((payout) => (
                     <div key={payout.id} className="flex justify-between items-center border-b pb-2">
                       <div>
                         <p className="font-medium text-gray-900">
@@ -235,7 +256,7 @@ export default function CommercialInsightsPage() {
                         <p className="text-xs text-gray-500 capitalize">{payout.status}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-green-600">
+                        <p className="font-bold text-blue-600">
                           {payout.amount.toLocaleString("da-DK")} kr.
                         </p>
                         <p className="text-xs text-gray-500">{payout.type}</p>
@@ -246,7 +267,10 @@ export default function CommercialInsightsPage() {
               )}
             </CardContent>
           </Card>
+        </div>
 
+        {/* Charts Row 1 */}
+        <div className="grid gap-6 md:grid-cols-2 mb-8">
           {/* Revenue Breakdown */}
           <Card>
             <CardHeader>
@@ -273,6 +297,25 @@ export default function CommercialInsightsPage() {
                   </Pie>
                   <Tooltip formatter={(value: number) => `${value.toLocaleString("da-DK")} kr.`} />
                 </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Subscriptions by Type */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Subscriptions efter Type</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={subscriptionsByIntervalData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#8b5cf6" name="Antal" />
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -305,24 +348,6 @@ export default function CommercialInsightsPage() {
             </CardContent>
           </Card>
 
-          {/* Subscriptions by Type */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscriptions efter Type</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={subscriptionsByIntervalData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#8b5cf6" name="Antal" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Summary Card */}
