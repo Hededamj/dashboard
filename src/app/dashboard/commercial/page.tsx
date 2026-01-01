@@ -269,59 +269,7 @@ export default function CommercialInsightsPage() {
           </Card>
         </div>
 
-        {/* Charts Row 1 */}
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          {/* Revenue Breakdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Fordeling</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={revenueByIntervalData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, revenue }) =>
-                      `${name}: ${revenue.toLocaleString("da-DK")} kr.`
-                    }
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="revenue"
-                  >
-                    {revenueByIntervalData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => `${value.toLocaleString("da-DK")} kr.`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Subscriptions by Type */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscriptions efter Type</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={subscriptionsByIntervalData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#8b5cf6" name="Antal" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Row 2 */}
+        {/* Charts Row */}
         <div className="grid gap-6 md:grid-cols-2 mb-8">
           {/* Revenue Trend */}
           <Card>
