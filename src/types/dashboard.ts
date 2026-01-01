@@ -35,6 +35,7 @@ export interface ActivityEvent {
   email: string;
   date: string;
   amount?: number;
+  activePeriods?: number; // Number of billing periods the member has been active
 }
 
 export interface DashboardData {

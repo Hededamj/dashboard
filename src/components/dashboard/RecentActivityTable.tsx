@@ -30,13 +30,14 @@ export function RecentActivityTable({ data }: RecentActivityTableProps) {
               <TableHead>Type</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Dato</TableHead>
+              <TableHead className="text-right">Aktive Perioder</TableHead>
               <TableHead className="text-right">Beløb</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
                   Ingen aktivitet endnu
                 </TableCell>
               </TableRow>
@@ -60,6 +61,15 @@ export function RecentActivityTable({ data }: RecentActivityTableProps) {
                   </TableCell>
                   <TableCell className="font-mono text-sm">{event.email}</TableCell>
                   <TableCell>{formatDate(new Date(event.date))}</TableCell>
+                  <TableCell className="text-right">
+                    {event.activePeriods ? (
+                      <span className="font-medium">
+                        {event.activePeriods} {event.activePeriods === 1 ? "måned" : "måneder"}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     {event.amount ? formatCurrency(event.amount) : "-"}
                   </TableCell>

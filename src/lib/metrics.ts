@@ -736,7 +736,7 @@ export async function getGrowthTrends(period: PeriodType = "last4weeks"): Promis
  * Get recent activity (signups and cancellations)
  */
 export async function getRecentActivity(): Promise<ActivityEvent[]> {
-  return withCache("recent-activity", async () => {
+  return withCache("recent-activity-v2", async () => {
     const [signupEvents, cancelEvents] = await Promise.all([
       stripe.events.list({
         type: "customer.subscription.created",
@@ -769,12 +769,22 @@ export async function getRecentActivity(): Promise<ActivityEvent[]> {
         email = customer.email;
       }
 
+      // Calculate active periods (months from creation to now or cancellation)
+      const createdDate = new Date(subscription.created * 1000);
+      const endDate = subscription.canceled_at
+        ? new Date(subscription.canceled_at * 1000)
+        : new Date();
+      const activePeriods = Math.max(1, Math.floor(
+        (endDate.getTime() - createdDate.getTime()) / (30 * 24 * 60 * 60 * 1000)
+      ));
+
       activities.push({
         id: event.id,
         type: "signup",
         email,
         date: new Date(event.created * 1000).toISOString(),
         amount: MONTHLY_PRICE,
+        activePeriods,
       });
     }
 
@@ -797,11 +807,19 @@ export async function getRecentActivity(): Promise<ActivityEvent[]> {
         email = customer.email;
       }
 
+      // Calculate active periods (months from creation to cancellation)
+      const createdDate = new Date(subscription.created * 1000);
+      const canceledDate = new Date(subscription.canceled_at * 1000);
+      const activePeriods = Math.max(1, Math.floor(
+        (canceledDate.getTime() - createdDate.getTime()) / (30 * 24 * 60 * 60 * 1000)
+      ));
+
       activities.push({
         id: event.id,
         type: "cancel",
         email,
         date: new Date(event.created * 1000).toISOString(),
+        activePeriods,
       });
     }
 
