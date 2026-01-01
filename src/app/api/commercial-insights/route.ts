@@ -100,9 +100,13 @@ export async function GET() {
       const startOfYear = new Date(now.getFullYear(), 0, 1);
       const monthsElapsed = Math.max(1, now.getMonth() + 1); // At least 1 month
 
+      // Simple projection: assume 2% growth per month (conservative estimate)
+      // Will be updated with actual growth rate from transactions later
+      const projectedNextMonth = currentMRR * 1.02;
+
       return {
         currentMRR: Math.round(currentMRR),
-        projectedNextMonth: Math.round(currentMRR), // Same as current MRR
+        projectedNextMonth: Math.round(projectedNextMonth),
         monthlyRevenue: Math.round(monthlyRevenue),
         yearlyRevenue: Math.round(yearlyRevenue),
         revenueByInterval,
