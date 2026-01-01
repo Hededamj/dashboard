@@ -48,6 +48,7 @@ interface CommercialInsights {
     projectedRevenue12Months: number;
     growthRate: number;
     revenueByMonth: Record<string, number>;
+    projectedMonths: Record<string, { actual?: number; projected?: number }>;
   };
   generatedAt: string;
 }
@@ -129,14 +130,12 @@ export default function CommercialInsightsPage() {
     })
   );
 
-  const revenueByMonthData = Object.entries(insights.transactions.revenueByMonth)
-    .map(([month, amount]) => ({
+  const trendData = Object.entries(insights.transactions.projectedMonths)
+    .map(([month, data]) => ({
       month,
-      revenue: Math.round(amount),
-    }))
-    .reverse()
-    .slice(0, 6)
-    .reverse();
+      actual: data.actual ? Math.round(data.actual) : null,
+      projected: data.projected ? Math.round(data.projected) : null,
+    }));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -271,28 +270,43 @@ export default function CommercialInsightsPage() {
 
         {/* Charts Row */}
         <div className="grid gap-6 md:grid-cols-2 mb-8">
-          {/* Revenue Trend */}
+          {/* Revenue Trend with Projection */}
           <Card>
             <CardHeader>
-              <CardTitle>Revenue Trend (Sidste 6 Måneder)</CardTitle>
+              <CardTitle>Revenue Trend & Forecast</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={revenueByMonthData}>
+                <LineChart data={trendData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
+                  <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
                   <YAxis />
-                  <Tooltip formatter={(value: number) => `${value.toLocaleString("da-DK")} kr.`} />
+                  <Tooltip formatter={(value: number) => value ? `${value.toLocaleString("da-DK")} kr.` : 'N/A'} />
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="revenue"
-                    stroke="#3b82f6"
+                    dataKey="actual"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    name="Faktisk"
+                    dot={{ fill: '#10b981', r: 4 }}
+                    connectNulls={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="projected"
+                    stroke="#8b5cf6"
                     strokeWidth={2}
-                    name="Revenue"
+                    strokeDasharray="5 5"
+                    name="Prognose"
+                    dot={{ fill: '#8b5cf6', r: 3 }}
+                    connectNulls={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                Grøn = Faktisk historik | Lilla stiplet = Fremskrivning baseret på trend
+              </p>
             </CardContent>
           </Card>
 

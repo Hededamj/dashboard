@@ -178,12 +178,39 @@ export async function GET() {
       const monthlyGrowthRate = growthRate / monthlyValues.length; // Average monthly growth
       const projectedRevenue12Months = currentMRR * 12 * (1 + monthlyGrowthRate / 100);
 
+      // Create projection for next 6 months
+      const projectedMonths: Record<string, { actual?: number; projected?: number }> = {};
+
+      // Get last 6 months actual data
+      const sortedMonths = Object.entries(revenueByMonth)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .slice(-6);
+
+      sortedMonths.forEach(([month, value]) => {
+        projectedMonths[month] = { actual: value };
+      });
+
+      // Project next 6 months
+      if (sortedMonths.length > 0) {
+        const lastValue = sortedMonths[sortedMonths.length - 1][1];
+        const lastDate = new Date(sortedMonths[sortedMonths.length - 1][0]);
+
+        for (let i = 1; i <= 6; i++) {
+          const nextMonth = new Date(lastDate);
+          nextMonth.setMonth(nextMonth.getMonth() + i);
+          const monthKey = format(nextMonth, "MMM yyyy");
+          const projectedValue = lastValue * Math.pow(1 + (monthlyGrowthRate / 100), i);
+          projectedMonths[monthKey] = { projected: Math.round(projectedValue) };
+        }
+      }
+
       return {
         ytdRevenue: Math.round(ytdRevenue),
         avgRevenuePerMonthYTD: Math.round(avgRevenuePerMonthYTD),
         projectedRevenue12Months: Math.round(projectedRevenue12Months),
         growthRate: Math.round(growthRate * 10) / 10,
         revenueByMonth,
+        projectedMonths,
       };
     }, 600); // 10 minutes
 
