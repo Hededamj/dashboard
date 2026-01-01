@@ -267,49 +267,45 @@ export default function CommercialInsightsPage() {
           </Card>
         </div>
 
-        {/* Charts Row */}
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          {/* Revenue Trend with Projection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Trend & Forecast</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
-                  <YAxis />
-                  <Tooltip formatter={(value: number) => value ? `${value.toLocaleString("da-DK")} kr.` : 'N/A'} />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="actual"
-                    stroke="#10b981"
-                    strokeWidth={3}
-                    name="Faktisk"
-                    dot={{ fill: '#10b981', r: 4 }}
-                    connectNulls={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="projected"
-                    stroke="#8b5cf6"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    name="Prognose"
-                    dot={{ fill: '#8b5cf6', r: 3 }}
-                    connectNulls={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <p className="text-xs text-gray-500 text-center mt-2">
-                Grøn = Faktisk historik | Lilla stiplet = Fremskrivning baseret på trend
-              </p>
-            </CardContent>
-          </Card>
-
-        </div>
+        {/* Revenue Trend Chart - Full Width */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Revenue Trend & Forecast</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
+                <YAxis />
+                <Tooltip formatter={(value: number) => value ? `${value.toLocaleString("da-DK")} kr.` : 'N/A'} />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="actual"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  name="Faktisk"
+                  dot={{ fill: '#10b981', r: 4 }}
+                  connectNulls={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="projected"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  name="Prognose"
+                  dot={{ fill: '#8b5cf6', r: 3 }}
+                  connectNulls={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Grøn = Faktisk historik | Lilla stiplet = Fremskrivning baseret på trend
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Summary Card */}
         <Card>
