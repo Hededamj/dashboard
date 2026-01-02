@@ -42,6 +42,10 @@ interface MemberInsights {
       topDomains: Record<string, number>;
     };
     signupTrends: Record<string, number>;
+    signupTiming: {
+      byDayOfWeek: Record<string, number>;
+      byHourOfDay: Record<string, number>;
+    };
     trialAnalysis: {
       currentActiveTrials: number;
       totalTrialsEver: number;
@@ -162,6 +166,20 @@ export default function MemberInsightsPage() {
       signups: count,
     }))
     .reverse();
+
+  // Prepare signup timing data for charts
+  const dayOrder = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
+  const signupByDayData = dayOrder.map((day) => ({
+    day,
+    signups: insights.memberProfiles.signupTiming.byDayOfWeek[day] || 0,
+  }));
+
+  const signupByHourData = Object.entries(insights.memberProfiles.signupTiming.byHourOfDay)
+    .map(([hour, count]) => ({
+      hour,
+      signups: count,
+    }))
+    .sort((a, b) => parseInt(a.hour) - parseInt(b.hour));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -353,6 +371,70 @@ export default function MemberInsightsPage() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Signup Timing Analysis */}
+        <div className="mb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">⏰ Hvornår tilmelder kunderne sig?</h3>
+          <p className="text-gray-600 mb-4">
+            Brug denne data til at optimere timing af jeres annoncer
+          </p>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Signup by Day of Week */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tilmeldinger per ugedag</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={signupByDayData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" angle={-45} textAnchor="end" height={80} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="signups" fill="#8b5cf6" />
+                  </BarChart>
+                </ResponsiveContainer>
+                <p className="text-sm text-gray-600 text-center mt-2">
+                  Hvilke dage konverterer bedst?
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Signup by Hour of Day */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tilmeldinger per time på dagen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={signupByHourData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="hour"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      interval={1}
+                    />
+                    <YAxis />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="signups"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      name="Tilmeldinger"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <p className="text-sm text-gray-600 text-center mt-2">
+                  Hvornår på dagen er folk mest aktive?
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Footer */}

@@ -185,6 +185,35 @@ export async function GET() {
       .sort(([a], [b]) => b.localeCompare(a))
       .slice(0, 12);
 
+    // Signup timing analysis (for ad targeting)
+    const signupByDayOfWeek: Record<string, number> = {
+      "Mandag": 0,
+      "Tirsdag": 0,
+      "Onsdag": 0,
+      "Torsdag": 0,
+      "Fredag": 0,
+      "Lørdag": 0,
+      "Søndag": 0,
+    };
+
+    const signupByHourOfDay: Record<string, number> = {};
+    for (let i = 0; i < 24; i++) {
+      signupByHourOfDay[`${i}:00`] = 0;
+    }
+
+    customers.forEach((customer) => {
+      const signupDate = new Date(customer.created * 1000);
+      const dayOfWeek = signupDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const hour = signupDate.getHours();
+
+      // Map day number to Danish day name
+      const dayNames = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"];
+      signupByDayOfWeek[dayNames[dayOfWeek]]++;
+
+      // Count signups by hour
+      signupByHourOfDay[`${hour}:00`]++;
+    });
+
     // Trial conversion analysis
     const trials = allSubs.filter((sub) => sub.livemode === true && sub.status === "trialing");
     const convertedTrials = allSubs.filter(
@@ -236,6 +265,10 @@ export async function GET() {
           topDomains: Object.fromEntries(topDomains),
         },
         signupTrends: Object.fromEntries(sortedSignupTrends),
+        signupTiming: {
+          byDayOfWeek: signupByDayOfWeek,
+          byHourOfDay: signupByHourOfDay,
+        },
         trialAnalysis: {
           currentActiveTrials: activeTrials,
           totalTrialsEver: totalTrialsEver,
