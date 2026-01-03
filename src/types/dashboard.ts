@@ -12,6 +12,8 @@ export interface DashboardMetrics {
   mrr: number;
   totalRevenue: number;
   newSignupsThisMonth: number;
+  newSignupsToday: number;
+  newSignupsThisWeek: number;
   cancellationsThisMonth: number;
   churnRate: number;
   growthRate: number;

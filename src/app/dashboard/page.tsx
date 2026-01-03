@@ -175,11 +175,11 @@ export default function DashboardPage() {
           />
 
           <MetricCard
-            title="Nye Medlemmer (4 uger)"
-            value={metrics.newSignupsComparison?.current || 0}
+            title="Tilmeldinger i dag"
+            value={metrics.newSignupsToday}
             icon={TrendingUp}
-            description={`${metrics.newSignupsThisMonth} denne måned`}
-            comparison={metrics.newSignupsComparison}
+            description={`${metrics.newSignupsThisWeek} denne uge | ${metrics.newSignupsThisMonth} denne måned`}
+            trend={metrics.newSignupsToday > 0 ? "up" : "neutral"}
           />
 
           <MetricCard

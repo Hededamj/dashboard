@@ -375,6 +375,28 @@ export async function getNewSignupsThisMonth(): Promise<number> {
 }
 
 /**
+ * Get new signups today
+ */
+export async function getNewSignupsToday(): Promise<number> {
+  return withCache("new-signups-today", async () => {
+    const todayStart = startOfToday();
+    const todayEnd = endOfToday();
+    return await getSignupsForPeriod(todayStart, todayEnd);
+  }, 5 * 60 * 1000); // Cache for 5 minutes (more frequent for today's metric)
+}
+
+/**
+ * Get new signups this week
+ */
+export async function getNewSignupsThisWeek(): Promise<number> {
+  return withCache("new-signups-week", async () => {
+    const weekStart = subDays(new Date(), 7);
+    const now = new Date();
+    return await getSignupsForPeriod(weekStart, now);
+  }, 5 * 60 * 1000); // Cache for 5 minutes
+}
+
+/**
  * Get signups for a specific date range (using subscription created dates)
  */
 async function getSignupsForPeriod(startDate: Date, endDate: Date): Promise<number> {
@@ -524,6 +546,8 @@ export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Pr
       mrr,
       totalRevenue,
       newSignupsThisMonth,
+      newSignupsToday,
+      newSignupsThisWeek,
       cancellationsThisMonth,
       churnRate,
       growthRate,
@@ -534,6 +558,8 @@ export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Pr
       calculateMRR(),
       calculateTotalRevenue(),
       getNewSignupsThisMonth(),
+      getNewSignupsToday(),
+      getNewSignupsThisWeek(),
       getCancellationsThisMonth(),
       calculateChurnRate(),
       calculateGrowthRate(),
@@ -560,6 +586,8 @@ export async function getDashboardMetrics(period: PeriodType = "last4weeks"): Pr
       mrr,
       totalRevenue,
       newSignupsThisMonth,
+      newSignupsToday,
+      newSignupsThisWeek,
       cancellationsThisMonth,
       churnRate,
       growthRate,
