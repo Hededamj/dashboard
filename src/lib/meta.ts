@@ -58,6 +58,8 @@ async function fetchMetaAdInsights(
 
     const data = await response.json();
 
+    console.log(`[Meta] API Response for ${dateStart} to ${dateStop}:`, JSON.stringify(data));
+
     if (!data.data || data.data.length === 0) {
       console.log("[Meta] No data returned for period");
       return {
@@ -70,8 +72,12 @@ async function fetchMetaAdInsights(
     }
 
     const insights = data.data[0];
+    const parsedSpend = parseFloat(insights.spend || "0");
+
+    console.log(`[Meta] Raw spend: "${insights.spend}", Parsed: ${parsedSpend}`);
+
     return {
-      spend: parseFloat(insights.spend || "0"),
+      spend: parsedSpend,
       impressions: parseInt(insights.impressions || "0", 10),
       clicks: parseInt(insights.clicks || "0", 10),
       conversions: insights.conversions ? parseInt(insights.conversions, 10) : undefined,
@@ -88,7 +94,7 @@ async function fetchMetaAdInsights(
  * Get ad spend for today
  */
 export async function getMetaSpendToday(): Promise<number> {
-  return withCache("meta-spend-today", async () => {
+  return withCache("meta-spend-today-v2", async () => {
     const today = format(new Date(), "yyyy-MM-dd");
     const insights = await fetchMetaAdInsights(today, today);
 
@@ -106,7 +112,7 @@ export async function getMetaSpendToday(): Promise<number> {
  * Get ad spend for this month
  */
 export async function getMetaSpendThisMonth(): Promise<number> {
-  return withCache("meta-spend-month", async () => {
+  return withCache("meta-spend-month-v2", async () => {
     const now = new Date();
     const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
     const today = format(now, "yyyy-MM-dd");
@@ -127,7 +133,7 @@ export async function getMetaSpendThisMonth(): Promise<number> {
  * Get ad spend for last 7 days
  */
 export async function getMetaSpendLast7Days(): Promise<number> {
-  return withCache("meta-spend-week", async () => {
+  return withCache("meta-spend-week-v2", async () => {
     const today = new Date();
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
