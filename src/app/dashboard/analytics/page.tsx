@@ -14,8 +14,18 @@ import {
 import { formatCurrency, formatPercentage } from "@/lib/utils";
 import type { AnalyticsMetrics } from "@/types";
 
+interface MetaSpendData {
+  totalSpend: number;
+  dailySpend: number;
+  weeklySpend: number;
+  monthlySpend: number;
+  currency: string;
+  fallback?: boolean;
+}
+
 export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsMetrics | null>(null);
+  const [metaSpend, setMetaSpend] = useState<MetaSpendData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,14 +35,20 @@ export default function AnalyticsPage() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch("/api/analytics");
+        const [analyticsRes, metaSpendRes] = await Promise.all([
+          fetch("/api/analytics"),
+          fetch("/api/meta-spend"),
+        ]);
 
-        if (!res.ok) {
+        if (!analyticsRes.ok) {
           throw new Error("Failed to fetch analytics");
         }
 
-        const data = await res.json();
-        setAnalytics(data);
+        const analyticsData = await analyticsRes.json();
+        const metaSpendData = metaSpendRes.ok ? await metaSpendRes.json() : null;
+
+        setAnalytics(analyticsData);
+        setMetaSpend(metaSpendData);
       } catch (err) {
         console.error("Error fetching analytics:", err);
         setError("Kunne ikke hente analytics data. Prøv igen senere.");
@@ -93,13 +109,30 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        {/* Info Alert */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p className="text-blue-800 text-sm">
-            💡 <strong>Marketing spend</strong> er sat til 15.000 DKK/md (gennemsnit).
-            Du kan senere integrere med Google Ads / Facebook Ads API for automatisk tracking.
-          </p>
-        </div>
+        {/* Meta Spend Info */}
+        {metaSpend && (
+          <div className={`border rounded-lg p-4 mb-6 ${
+            metaSpend.fallback
+              ? "bg-yellow-50 border-yellow-200"
+              : "bg-green-50 border-green-200"
+          }`}>
+            <p className={`text-sm ${metaSpend.fallback ? "text-yellow-800" : "text-green-800"}`}>
+              {metaSpend.fallback ? (
+                <>
+                  ⚠️ <strong>Meta Marketing API</strong> ikke tilgængelig. Bruger fallback værdi: {formatCurrency(metaSpend.monthlySpend)}/md
+                </>
+              ) : (
+                <>
+                  ✅ <strong>Live Meta Ad Spend:</strong> {formatCurrency(metaSpend.dailySpend)}/dag
+                  {" | "}
+                  {formatCurrency(metaSpend.weeklySpend)}/uge
+                  {" | "}
+                  <strong>{formatCurrency(metaSpend.monthlySpend)}/måned</strong>
+                </>
+              )}
+            </p>
+          </div>
+        )}
 
         {/* Unit Economics Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -282,7 +315,7 @@ export default function AnalyticsPage() {
             </li>
             <li className="flex items-center gap-2">
               <span className="text-indigo-500">•</span>
-              Google Ads / Facebook Ads integration (auto CAC tracking)
+              Google Ads integration (auto CAC tracking)
             </li>
           </ul>
         </div>

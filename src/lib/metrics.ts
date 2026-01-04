@@ -860,29 +860,38 @@ export async function getRecentActivity(): Promise<ActivityEvent[]> {
 
 /**
  * Calculate analytics metrics (LTV, CAC, ratios, etc.)
- * TODO: Replace hardcoded marketing spend with dynamic data
+ * Uses real Meta Marketing API data for accurate CAC
  */
 export async function getAnalyticsMetrics(): Promise<any> {
+  // Import Meta functions dynamically to avoid issues if Meta credentials are missing
+  let getMetaSpendThisMonth: () => Promise<number>;
+  try {
+    const metaModule = await import('./meta');
+    getMetaSpendThisMonth = metaModule.getMetaSpendThisMonth;
+  } catch (error) {
+    console.error('[Analytics] Meta module not available, using fallback');
+    getMetaSpendThisMonth = async () => 15000; // Fallback to hardcoded value
+  }
+
   const [
     payingMembers,
     trialMembers,
     churnRate,
     mrr,
     ltv,
+    monthlyMarketingSpend,
   ] = await Promise.all([
     getPayingMembers(),
     getTrialMembers(),
     calculateChurnRate(),
     calculateMRR(),
     calculateRetentionRevenueLTV(), // Use retention-based LTV
+    getMetaSpendThisMonth(), // Get real spend from Meta API
   ]);
 
   // Calculate ARPS (Average Revenue Per Subscriber)
   const arps = payingMembers > 0 ? mrr / payingMembers : 0;
 
-  // TODO: Get marketing spend from settings/API
-  // For now, using average from Excel sheet
-  const monthlyMarketingSpend = 15000; // DKK
   const newCustomersThisMonth = await getNewSignupsThisMonth();
 
   // Calculate CAC (Customer Acquisition Cost)
