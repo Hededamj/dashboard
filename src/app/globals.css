@@ -6,32 +6,32 @@
 
 @layer base {
   :root {
-    /* Dark brutalist theme */
-    --background: 0 0% 4%;
+    /* Dark teal/blue professional theme */
+    --background: 200 50% 15%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
+    --card: 200 45% 18%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
+    --popover: 200 45% 18%;
     --popover-foreground: 0 0% 98%;
-    --primary: 188 95% 42%;
-    --primary-foreground: 0 0% 4%;
-    --secondary: 84 81% 44%;
-    --secondary-foreground: 0 0% 4%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 25 95% 53%;
-    --accent-foreground: 0 0% 4%;
+    --primary: 188 95% 52%;
+    --primary-foreground: 200 50% 15%;
+    --secondary: 84 81% 55%;
+    --secondary-foreground: 200 50% 15%;
+    --muted: 200 40% 25%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 25 95% 60%;
+    --accent-foreground: 200 50% 15%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 188 95% 42%;
-    --radius: 0.25rem;
+    --border: 200 35% 25%;
+    --input: 200 35% 25%;
+    --ring: 188 95% 52%;
+    --radius: 0.5rem;
 
     /* Custom design tokens */
-    --grid-color: rgba(6, 182, 212, 0.08);
-    --glow-primary: rgba(6, 182, 212, 0.4);
-    --glow-secondary: rgba(132, 204, 22, 0.4);
+    --grid-color: rgba(6, 182, 212, 0.05);
+    --glow-primary: rgba(6, 182, 212, 0.3);
+    --glow-secondary: rgba(132, 204, 22, 0.3);
   }
 }
 
