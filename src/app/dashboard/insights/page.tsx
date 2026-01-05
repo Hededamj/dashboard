@@ -56,7 +56,8 @@ interface MemberInsights {
   generatedAt: string;
 }
 
-const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#06b6d4"];
+// Theme colors matching dashboard
+const COLORS = ["hsl(188, 95%, 52%)", "hsl(84, 81%, 55%)", "hsl(25, 95%, 60%)", "hsl(200, 45%, 40%)", "hsl(188, 80%, 60%)", "hsl(84, 70%, 65%)"];
 
 export default function MemberInsightsPage() {
   const [insights, setInsights] = useState<MemberInsights | null>(null);
@@ -197,10 +198,10 @@ export default function MemberInsightsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Churned</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <TrendingDown className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-destructive">
                 {insights.churnAnalysis.totalCanceled}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -212,10 +213,10 @@ export default function MemberInsightsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">At Risk</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-orange-600" />
+              <AlertTriangle className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-accent">
                 {insights.churnAnalysis.riskIndicators.totalAtRisk}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -228,10 +229,10 @@ export default function MemberInsightsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Trial Conversion</CardTitle>
-              <Target className="h-4 w-4 text-green-600" />
+              <Target className="h-4 w-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-secondary">
                 {insights.memberProfiles.trialAnalysis.conversionRate}%
               </div>
               <p className="text-xs text-muted-foreground">
@@ -255,11 +256,27 @@ export default function MemberInsightsPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={churnLifetimeData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" angle={-45} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#ef4444" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis
+                      dataKey="period"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <YAxis
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "0.5rem",
+                      }}
+                    />
+                    <Bar dataKey="count" fill="hsl(var(--destructive))" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -273,16 +290,33 @@ export default function MemberInsightsPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={churnCohortData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis
+                      dataKey="month"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <YAxis
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "0.5rem",
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: "11px", fontWeight: "600" }} />
                     <Line
                       type="monotone"
                       dataKey="churnRate"
-                      stroke="#ef4444"
-                      strokeWidth={2}
+                      stroke="hsl(var(--destructive))"
+                      strokeWidth={3}
+                      dot={{ fill: "hsl(var(--destructive))", r: 4 }}
                       name="Churn Rate %"
                     />
                   </LineChart>
@@ -312,14 +346,20 @@ export default function MemberInsightsPage() {
                       labelLine={false}
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       outerRadius={80}
-                      fill="#8884d8"
+                      fill="hsl(var(--primary))"
                       dataKey="value"
                     >
                       {emailData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "0.5rem",
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
                 <p className="text-sm text-muted-foreground text-center mt-2">
@@ -336,11 +376,27 @@ export default function MemberInsightsPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={topDomainsData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="domain" type="category" width={100} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#3b82f6" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis
+                      type="number"
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <YAxis
+                      dataKey="domain"
+                      type="category"
+                      width={100}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "0.5rem",
+                      }}
+                    />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -355,16 +411,33 @@ export default function MemberInsightsPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={signupTrendsData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                  <XAxis
+                    dataKey="month"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                    stroke="hsl(var(--border))"
+                  />
+                  <YAxis
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                    stroke="hsl(var(--border))"
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "2px solid hsl(var(--border))",
+                      borderRadius: "0.5rem",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: "11px", fontWeight: "600" }} />
                   <Line
                     type="monotone"
                     dataKey="signups"
-                    stroke="#10b981"
-                    strokeWidth={2}
+                    stroke="hsl(var(--secondary))"
+                    strokeWidth={3}
+                    dot={{ fill: "hsl(var(--secondary))", r: 4 }}
                     name="Nye Signups"
                   />
                 </LineChart>
@@ -389,11 +462,27 @@ export default function MemberInsightsPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={signupByDayData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" angle={-45} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="signups" fill="#8b5cf6" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis
+                      dataKey="day"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <YAxis
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "0.5rem",
+                      }}
+                    />
+                    <Bar dataKey="signups" fill="hsl(var(--primary))" />
                   </BarChart>
                 </ResponsiveContainer>
                 <p className="text-sm text-muted-foreground text-center mt-2">
@@ -410,21 +499,33 @@ export default function MemberInsightsPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={signupByHourData}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                     <XAxis
                       dataKey="hour"
                       angle={-45}
                       textAnchor="end"
                       height={80}
                       interval={1}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
                     />
-                    <YAxis />
-                    <Tooltip />
+                    <YAxis
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      stroke="hsl(var(--border))"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "2px solid hsl(var(--border))",
+                        borderRadius: "0.5rem",
+                      }}
+                    />
                     <Line
                       type="monotone"
                       dataKey="signups"
-                      stroke="#f59e0b"
-                      strokeWidth={2}
+                      stroke="hsl(var(--accent))"
+                      strokeWidth={3}
+                      dot={{ fill: "hsl(var(--accent))", r: 4 }}
                       name="Tilmeldinger"
                     />
                   </LineChart>
