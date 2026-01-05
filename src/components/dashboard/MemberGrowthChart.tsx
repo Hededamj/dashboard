@@ -21,23 +21,23 @@ export function MemberGrowthChart({ data }: MemberGrowthChartProps) {
   return (
     <div className="relative overflow-hidden bg-card border-2 border-border hover:border-primary/50 transition-all duration-500 hover:shadow-xl hover:shadow-primary/20 group">
       {/* Header */}
-      <div className="border-b-2 border-border p-6 bg-background/30">
+      <div className="border-b-2 border-border p-4 sm:p-6 bg-background/30">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+            <h3 className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
               Member Analysis
             </h3>
-            <h2 className="text-xl font-bold text-foreground">Medlem Vækst</h2>
+            <h2 className="text-base sm:text-xl font-bold text-foreground">Medlem Vækst</h2>
           </div>
-          <div className="w-10 h-10 rounded bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-            <Users className="h-5 w-5 text-primary" strokeWidth={2.5} />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" strokeWidth={2.5} />
           </div>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="p-6">
-        <ResponsiveContainer width="100%" height={300}>
+      <div className="p-4 sm:p-6">
+        <ResponsiveContainer width="100%" height={250} className="sm:!h-[300px]">
           <LineChart data={data}>
             <CartesianGrid
               strokeDasharray="3 3"
