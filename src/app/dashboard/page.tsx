@@ -156,52 +156,46 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Metric Cards - Asymmetric grid with staggered animations */}
-        <div className="grid gap-6 mb-12">
-          {/* Top row: 3 cards */}
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="animate-scale-in delay-100">
-              <MetricCard
-                title="MRR (4 uger)"
-                value={formatCurrency(metrics.mrr)}
-                icon={DollarSign}
-                description={`${metrics.payingMembers} betalende medlemmer`}
-                comparison={metrics.mrrComparison}
-              />
-            </div>
-
-            <div className="animate-scale-in delay-200">
-              <MetricCard
-                title="Betalende Medlemmer"
-                value={metrics.payingMembers}
-                icon={Users}
-                description={`${metrics.trialMembers} i trial`}
-                trend={metrics.payingMembers > 0 ? "up" : "neutral"}
-              />
-            </div>
-
-            <div className="animate-scale-in delay-300">
-              <MetricCard
-                title="Tilmeldinger i dag"
-                value={metrics.newSignupsToday}
-                icon={TrendingUp}
-                description={`${metrics.newSignupsThisWeek} denne uge | ${metrics.newSignupsThisMonth} denne måned`}
-                trend={metrics.newSignupsToday > 0 ? "up" : "neutral"}
-              />
-            </div>
+        {/* Metric Cards - All on one row */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
+          <div className="animate-scale-in delay-100">
+            <MetricCard
+              title="MRR (4 uger)"
+              value={formatCurrency(metrics.mrr)}
+              icon={DollarSign}
+              description={`${metrics.payingMembers} betalende medlemmer`}
+              comparison={metrics.mrrComparison}
+            />
           </div>
 
-          {/* Bottom row: 1 card spanning full width or offset */}
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="md:col-start-2 animate-scale-in delay-400">
-              <MetricCard
-                title="Churn Rate"
-                value={formatPercentage(metrics.churnRate)}
-                icon={TrendingDown}
-                description={`${metrics.cancellationsThisMonth} opsigelser`}
-                trend={metrics.churnRate > 5 ? "down" : "up"}
-              />
-            </div>
+          <div className="animate-scale-in delay-200">
+            <MetricCard
+              title="Betalende Medlemmer"
+              value={metrics.payingMembers}
+              icon={Users}
+              description={`${metrics.trialMembers} i trial`}
+              trend={metrics.payingMembers > 0 ? "up" : "neutral"}
+            />
+          </div>
+
+          <div className="animate-scale-in delay-300">
+            <MetricCard
+              title="Tilmeldinger i dag"
+              value={metrics.newSignupsToday}
+              icon={TrendingUp}
+              description={`${metrics.newSignupsThisWeek} denne uge | ${metrics.newSignupsThisMonth} denne måned`}
+              trend={metrics.newSignupsToday > 0 ? "up" : "neutral"}
+            />
+          </div>
+
+          <div className="animate-scale-in delay-400">
+            <MetricCard
+              title="Churn Rate"
+              value={formatPercentage(metrics.churnRate)}
+              icon={TrendingDown}
+              description={`${metrics.cancellationsThisMonth} opsigelser`}
+              trend={metrics.churnRate > 5 ? "down" : "up"}
+            />
           </div>
         </div>
 
