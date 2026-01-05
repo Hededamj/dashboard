@@ -24,12 +24,14 @@ export function PeriodSelector({
   onPeriodChange,
 }: PeriodSelectorProps) {
   return (
-    <div className="flex items-center gap-3 mb-6 bg-white px-4 py-3 rounded-lg border border-gray-200">
-      <Calendar className="h-5 w-5 text-gray-500" />
+    <div className="flex items-center gap-3 bg-card border-2 border-border px-6 py-4 hover:border-primary/50 transition-colors">
+      <div className="w-10 h-10 rounded bg-primary/10 border border-primary/20 flex items-center justify-center">
+        <Calendar className="h-5 w-5 text-primary" strokeWidth={2.5} />
+      </div>
       <select
         value={selectedPeriod}
         onChange={(e) => onPeriodChange(e.target.value as PeriodType)}
-        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white cursor-pointer"
+        className="flex-1 px-4 py-3 border-2 border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary cursor-pointer hover:border-primary/50 transition-colors"
       >
         <option value="today">I dag</option>
         <option value="yesterday">I går</option>
