@@ -138,9 +138,9 @@ export default function DashboardPage() {
     <div className="min-h-screen">
       <DashboardHeader />
 
-      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-12">
+      <main className="container mx-auto px-4 md:px-6 py-6 md:py-12">
         {/* Period Selector & Export - Animated header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-10 animate-slide-in-right">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 mb-6 md:mb-10 animate-slide-in-right">
           <div className="flex-1">
             <PeriodSelector
               selectedPeriod={selectedPeriod}
@@ -157,7 +157,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Metric Cards - Responsive grid */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-8 sm:mb-12">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-8 md:mb-12">
           <div className="animate-scale-in delay-100">
             <MetricCard
               title="MRR (4 uger)"
@@ -200,7 +200,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Charts - Staggered reveal */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 mb-8 sm:mb-12">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 mb-8 md:mb-12">
           <div className="animate-slide-in-up delay-100">
             <MemberGrowthChart data={trends} />
           </div>
@@ -215,8 +215,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Version Footer - Technical style */}
-        <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t border-border/50">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0 text-[10px] sm:text-xs font-mono-data text-muted-foreground">
+        <div className="mt-8 md:mt-12 pt-4 md:pt-6 border-t border-border/50">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0 text-[10px] md:text-xs font-mono-data text-muted-foreground">
             <span>DASHBOARD v2.1</span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />

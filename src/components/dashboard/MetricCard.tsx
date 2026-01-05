@@ -74,65 +74,65 @@ export function MetricCard({
         />
       </div>
 
-      <div className="relative p-4 sm:p-6">
+      <div className="relative p-4 md:p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-3 sm:mb-6">
+        <div className="flex items-start justify-between mb-3 md:mb-6">
           <div className="flex-1">
-            <h3 className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+            <h3 className="text-[10px] md:text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
               {title}
             </h3>
           </div>
           <div
             className={cn(
-              "w-8 h-8 sm:w-10 sm:h-10 rounded flex items-center justify-center flex-shrink-0",
+              "w-8 h-8 md:w-10 md:h-10 rounded flex items-center justify-center flex-shrink-0",
               "bg-primary/10 border border-primary/20",
               "group-hover:bg-primary/20 transition-colors duration-300"
             )}
           >
-            <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" strokeWidth={2.5} />
+            <Icon className="h-4 w-4 md:h-5 md:w-5 text-primary" strokeWidth={2.5} />
           </div>
         </div>
 
         {/* Value - large and bold with monospace font */}
-        <div className="mb-3 sm:mb-4">
-          <div className="text-2xl sm:text-4xl font-bold font-mono-data tracking-tight text-foreground">
+        <div className="mb-3 md:mb-4">
+          <div className="text-2xl md:text-4xl font-bold font-mono-data tracking-tight text-foreground">
             {value}
           </div>
         </div>
 
         {/* Comparison or Description */}
         {comparison ? (
-          <div className="flex items-center gap-2 sm:gap-3 pt-2 sm:pt-3 border-t border-border/50">
+          <div className="flex items-center gap-2 md:gap-3 pt-2 md:pt-3 border-t border-border/50">
             <div
               className={cn(
-                "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm",
+                "flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-0.5 md:py-1 rounded-sm",
                 "bg-background/50 border",
                 trendConfig.borderColor
               )}
             >
-              <TrendIcon className={cn("h-3 w-3 sm:h-3.5 sm:w-3.5", trendConfig.color)} strokeWidth={2.5} />
-              <span className={cn("text-xs sm:text-sm font-bold font-mono-data", trendConfig.color)}>
+              <TrendIcon className={cn("h-3 w-3 md:h-3.5 md:w-3.5", trendConfig.color)} strokeWidth={2.5} />
+              <span className={cn("text-xs md:text-sm font-bold font-mono-data", trendConfig.color)}>
                 {comparison.change > 0 ? "+" : ""}
                 {comparison.change.toFixed(1)}%
               </span>
             </div>
-            <span className="text-[10px] sm:text-xs text-muted-foreground">
+            <span className="text-[10px] md:text-xs text-muted-foreground">
               vs. {comparison.previous}
             </span>
           </div>
         ) : (
-          <div className="pt-2 sm:pt-3 border-t border-border/50">
+          <div className="pt-2 md:pt-3 border-t border-border/50">
             {change !== undefined && (
-              <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
-                <TrendIcon className={cn("h-3 w-3 sm:h-3.5 sm:w-3.5", trendConfig.color)} strokeWidth={2.5} />
-                <span className={cn("text-xs sm:text-sm font-bold font-mono-data", trendConfig.color)}>
+              <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-2">
+                <TrendIcon className={cn("h-3 w-3 md:h-3.5 md:w-3.5", trendConfig.color)} strokeWidth={2.5} />
+                <span className={cn("text-xs md:text-sm font-bold font-mono-data", trendConfig.color)}>
                   {change > 0 ? "+" : ""}
                   {change.toFixed(1)}%
                 </span>
               </div>
             )}
             {description && (
-              <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
+              <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed">
                 {description}
               </p>
             )}

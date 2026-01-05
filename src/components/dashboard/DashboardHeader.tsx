@@ -31,17 +31,17 @@ export function DashboardHeader() {
               <img
                 src="https://mettehummel.dk/wp-content/uploads/2022/01/61f90d613911e_1643711841_mette-logo-2021-hvid.png"
                 alt="Mette Hummel Logo"
-                className="h-10 sm:h-14 w-auto relative z-10"
+                className="h-10 md:h-14 w-auto relative z-10"
               />
             </div>
             <div className="border-l-2 border-primary/30 pl-3 sm:pl-6">
-              <h1 className="text-lg sm:text-3xl font-bold text-foreground tracking-tight flex items-center gap-2 sm:gap-3">
+              <h1 className="text-lg md:text-3xl font-bold text-foreground tracking-tight flex items-center gap-2 sm:gap-3">
                 <span className="hidden xs:inline">FamilyMind</span> Dashboard
-                <span className="text-[8px] sm:text-[10px] font-mono-data font-semibold bg-secondary/20 text-secondary border border-secondary/50 px-1.5 sm:px-2 py-0.5 sm:py-1">
+                <span className="text-[8px] md:text-[10px] font-mono-data font-semibold bg-secondary/20 text-secondary border border-secondary/50 px-1.5 sm:px-2 py-0.5 sm:py-1">
                   v2.1
                 </span>
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 font-medium hidden sm:block">
+              <p className="text-xs md:text-sm text-muted-foreground mt-0.5 sm:mt-1 font-medium hidden sm:block">
                 Oversigt over medlemmer og økonomi
               </p>
             </div>
@@ -61,9 +61,9 @@ export function DashboardHeader() {
 
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-background border-2 border-border text-foreground font-semibold text-xs sm:text-sm hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-background border-2 border-border text-foreground font-semibold text-xs md:text-sm hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
             >
-              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
+              <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4" strokeWidth={2.5} />
               <span className="hidden xs:inline">Log ud</span>
             </button>
           </div>
@@ -82,7 +82,7 @@ export function DashboardHeader() {
               key={item.path}
               onClick={() => router.push(item.path)}
               className={`
-                relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wide whitespace-nowrap flex-shrink-0
+                relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 text-xs md:text-sm font-bold uppercase tracking-wide whitespace-nowrap flex-shrink-0
                 transition-all duration-300
                 ${item.active
                   ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
@@ -90,7 +90,7 @@ export function DashboardHeader() {
                 }
               `}
             >
-              <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
+              <item.icon className="h-3.5 w-3.5 md:h-4 md:w-4" strokeWidth={2.5} />
               <span className="hidden xs:inline">{item.label}</span>
               {item.active && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-secondary" />
