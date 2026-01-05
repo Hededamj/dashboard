@@ -62,14 +62,14 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <DashboardHeader />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-6 py-12">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div className="h-8 bg-card border-2 border-border w-48 mb-8"></div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-white border rounded-lg" />
+                <div key={i} className="h-40 bg-card border-2 border-border" />
               ))}
             </div>
           </div>
@@ -80,12 +80,12 @@ export default function AnalyticsPage() {
 
   if (error || !analytics) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <DashboardHeader />
-        <main className="container mx-auto px-4 py-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="font-semibold mb-2 text-red-800">Fejl</h3>
-            <p className="text-red-700">{error}</p>
+        <main className="container mx-auto px-6 py-12">
+          <div className="bg-destructive/10 border-2 border-destructive/50 p-6">
+            <h3 className="font-bold text-lg mb-2 text-destructive">Fejl</h3>
+            <p className="text-foreground/80">{error}</p>
           </div>
         </main>
       </div>
@@ -97,26 +97,26 @@ export default function AnalyticsPage() {
   const paybackHealth = analytics.paybackPeriod <= 12 ? "up" : analytics.paybackPeriod <= 18 ? "neutral" : "down";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <DashboardHeader />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 py-12">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics & Unit Economics</h1>
-          <p className="text-gray-600">
+        <div className="mb-10 animate-slide-in-right">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Analytics & Unit Economics</h1>
+          <p className="text-muted-foreground">
             Forretnings sundhed og nøgle metrics for optimering
           </p>
         </div>
 
         {/* Meta Spend Info */}
         {metaSpend && (
-          <div className={`border rounded-lg p-4 mb-6 ${
+          <div className={`border-2 p-6 mb-8 animate-fade-in ${
             metaSpend.fallback
-              ? "bg-yellow-50 border-yellow-200"
-              : "bg-green-50 border-green-200"
+              ? "bg-accent/10 border-accent/50"
+              : "bg-secondary/10 border-secondary/50"
           }`}>
-            <p className={`text-sm ${metaSpend.fallback ? "text-yellow-800" : "text-green-800"}`}>
+            <p className={`text-sm font-semibold ${metaSpend.fallback ? "text-accent" : "text-secondary"}`}>
               {metaSpend.fallback ? (
                 <>
                   ⚠️ <strong>Meta Marketing API</strong> ikke tilgængelig. Bruger fallback værdi: {formatCurrency(metaSpend.monthlySpend)}/md
@@ -197,31 +197,31 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Health Indicators */}
-        <div className="bg-white border rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4">📊 Business Health Indicators</h2>
+        <div className="bg-card border-2 border-border p-8 mb-8 hover:border-primary/50 transition-all duration-500 animate-slide-in-up delay-200">
+          <h2 className="text-xl font-bold mb-6 text-foreground">📊 Business Health Indicators</h2>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* LTV:CAC */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">LTV:CAC Ratio</span>
-                <span className={`font-bold ${
-                  analytics.ltvCacRatio >= 3 ? "text-green-600" :
-                  analytics.ltvCacRatio >= 2 ? "text-yellow-600" : "text-red-600"
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold text-foreground">LTV:CAC Ratio</span>
+                <span className={`font-bold font-mono-data ${
+                  analytics.ltvCacRatio >= 3 ? "text-secondary" :
+                  analytics.ltvCacRatio >= 2 ? "text-accent" : "text-destructive"
                 }`}>
                   {analytics.ltvCacRatio}x
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-muted/30 h-3 border border-border">
                 <div
-                  className={`h-2 rounded-full ${
-                    analytics.ltvCacRatio >= 3 ? "bg-green-500" :
-                    analytics.ltvCacRatio >= 2 ? "bg-yellow-500" : "bg-red-500"
+                  className={`h-full ${
+                    analytics.ltvCacRatio >= 3 ? "bg-secondary" :
+                    analytics.ltvCacRatio >= 2 ? "bg-accent" : "bg-destructive"
                   }`}
                   style={{ width: `${Math.min(analytics.ltvCacRatio / 5 * 100, 100)}%` }}
                 ></div>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-2">
                 {analytics.ltvCacRatio >= 3
                   ? "✅ Sund ratio - god unit economics"
                   : analytics.ltvCacRatio >= 2
@@ -232,25 +232,25 @@ export default function AnalyticsPage() {
 
             {/* Payback Period */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">Payback Period</span>
-                <span className={`font-bold ${
-                  analytics.paybackPeriod <= 12 ? "text-green-600" :
-                  analytics.paybackPeriod <= 18 ? "text-yellow-600" : "text-red-600"
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold text-foreground">Payback Period</span>
+                <span className={`font-bold font-mono-data ${
+                  analytics.paybackPeriod <= 12 ? "text-secondary" :
+                  analytics.paybackPeriod <= 18 ? "text-accent" : "text-destructive"
                 }`}>
                   {analytics.paybackPeriod} måneder
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-muted/30 h-3 border border-border">
                 <div
-                  className={`h-2 rounded-full ${
-                    analytics.paybackPeriod <= 12 ? "bg-green-500" :
-                    analytics.paybackPeriod <= 18 ? "bg-yellow-500" : "bg-red-500"
+                  className={`h-full ${
+                    analytics.paybackPeriod <= 12 ? "bg-secondary" :
+                    analytics.paybackPeriod <= 18 ? "bg-accent" : "bg-destructive"
                   }`}
                   style={{ width: `${Math.min((24 - analytics.paybackPeriod) / 24 * 100, 100)}%` }}
                 ></div>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-2">
                 {analytics.paybackPeriod <= 12
                   ? "✅ God - hurtig ROI"
                   : analytics.paybackPeriod <= 18
@@ -261,25 +261,25 @@ export default function AnalyticsPage() {
 
             {/* Quick Ratio */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">Quick Ratio (Vækst Health)</span>
-                <span className={`font-bold ${
-                  analytics.quickRatio >= 4 ? "text-green-600" :
-                  analytics.quickRatio >= 2 ? "text-yellow-600" : "text-red-600"
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold text-foreground">Quick Ratio (Vækst Health)</span>
+                <span className={`font-bold font-mono-data ${
+                  analytics.quickRatio >= 4 ? "text-secondary" :
+                  analytics.quickRatio >= 2 ? "text-accent" : "text-destructive"
                 }`}>
                   {analytics.quickRatio}x
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-muted/30 h-3 border border-border">
                 <div
-                  className={`h-2 rounded-full ${
-                    analytics.quickRatio >= 4 ? "bg-green-500" :
-                    analytics.quickRatio >= 2 ? "bg-yellow-500" : "bg-red-500"
+                  className={`h-full ${
+                    analytics.quickRatio >= 4 ? "bg-secondary" :
+                    analytics.quickRatio >= 2 ? "bg-accent" : "bg-destructive"
                   }`}
                   style={{ width: `${Math.min(analytics.quickRatio / 6 * 100, 100)}%` }}
                 ></div>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-2">
                 {analytics.quickRatio >= 4
                   ? "✅ Sund vækst - ny MRR overstiger churn"
                   : analytics.quickRatio >= 2
@@ -291,31 +291,31 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Coming Soon */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-2 text-indigo-900">🚀 Kommer snart</h2>
-          <p className="text-indigo-700 mb-4">
+        <div className="bg-primary/10 border-2 border-primary/50 p-8 animate-fade-in delay-300">
+          <h2 className="text-xl font-bold mb-3 text-primary">🚀 Kommer snart</h2>
+          <p className="text-foreground mb-6 font-medium">
             Vi arbejder på at tilføje følgende analytics features:
           </p>
-          <ul className="space-y-2 text-indigo-800">
-            <li className="flex items-center gap-2">
-              <span className="text-indigo-500">•</span>
-              CAC trend over tid (se effektivitet af marketing)
+          <ul className="space-y-3 text-muted-foreground">
+            <li className="flex items-center gap-3">
+              <span className="text-primary font-bold">•</span>
+              <span>CAC trend over tid (se effektivitet af marketing)</span>
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-indigo-500">•</span>
-              Free trial conversion trend
+            <li className="flex items-center gap-3">
+              <span className="text-primary font-bold">•</span>
+              <span>Free trial conversion trend</span>
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-indigo-500">•</span>
-              Revenue breakdown by membership type
+            <li className="flex items-center gap-3">
+              <span className="text-primary font-bold">•</span>
+              <span>Revenue breakdown by membership type</span>
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-indigo-500">•</span>
-              Cohort retention analysis
+            <li className="flex items-center gap-3">
+              <span className="text-primary font-bold">•</span>
+              <span>Cohort retention analysis</span>
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-indigo-500">•</span>
-              Google Ads integration (auto CAC tracking)
+            <li className="flex items-center gap-3">
+              <span className="text-primary font-bold">•</span>
+              <span>Google Ads integration (auto CAC tracking)</span>
             </li>
           </ul>
         </div>
