@@ -90,13 +90,13 @@ export default function MemberInsightsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <DashboardHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mb-4"></div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Henter insights fra Stripe...</h2>
-            <p className="text-gray-600 text-center max-w-md">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mb-4"></div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">Henter insights fra Stripe...</h2>
+            <p className="text-muted-foreground text-center max-w-md">
               Dette kan tage 15-30 sekunder første gang.<br />
               Næste gang er det instant! ⚡
             </p>
@@ -104,12 +104,12 @@ export default function MemberInsightsPage() {
           <div className="animate-pulse mt-8">
             <div className="grid gap-4 md:grid-cols-3 mb-8">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 bg-white border rounded-lg" />
+                <div key={i} className="h-32 bg-card border-2 border-border" />
               ))}
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="h-96 bg-white border rounded-lg" />
-              <div className="h-96 bg-white border rounded-lg" />
+              <div className="h-96 bg-card border-2 border-border" />
+              <div className="h-96 bg-card border-2 border-border" />
             </div>
           </div>
         </main>
@@ -119,12 +119,12 @@ export default function MemberInsightsPage() {
 
   if (error || !insights) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <DashboardHeader />
         <main className="container mx-auto px-4 py-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="font-semibold mb-2 text-red-800">Fejl</h3>
-            <p className="text-red-700">{error}</p>
+          <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-4">
+            <h3 className="font-semibold mb-2 text-destructive">Fejl</h3>
+            <p className="text-destructive">{error}</p>
           </div>
         </main>
       </div>
@@ -182,14 +182,14 @@ export default function MemberInsightsPage() {
     .sort((a, b) => parseInt(a.hour) - parseInt(b.hour));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <DashboardHeader />
 
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900">Medlem Insights</h2>
-          <p className="text-gray-600">Churn analyse og medlems profiler</p>
+          <h2 className="text-3xl font-bold text-foreground">Medlem Insights</h2>
+          <p className="text-muted-foreground">Churn analyse og medlems profiler</p>
         </div>
 
         {/* Risk Indicators */}
@@ -203,7 +203,7 @@ export default function MemberInsightsPage() {
               <div className="text-2xl font-bold text-red-600">
                 {insights.churnAnalysis.totalCanceled}
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Gns. levetid: {insights.churnAnalysis.avgLifetimeMonths} måneder
               </p>
             </CardContent>
@@ -218,7 +218,7 @@ export default function MemberInsightsPage() {
               <div className="text-2xl font-bold text-orange-600">
                 {insights.churnAnalysis.riskIndicators.totalAtRisk}
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {insights.churnAnalysis.riskIndicators.scheduledCancellations} scheduled,{" "}
                 {insights.churnAnalysis.riskIndicators.pastDue} past due
               </p>
@@ -234,7 +234,7 @@ export default function MemberInsightsPage() {
               <div className="text-2xl font-bold text-green-600">
                 {insights.memberProfiles.trialAnalysis.conversionRate}%
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {insights.memberProfiles.trialAnalysis.convertedTrials} /{" "}
                 {insights.memberProfiles.trialAnalysis.totalTrialsEver} trials
               </p>
@@ -244,7 +244,7 @@ export default function MemberInsightsPage() {
 
         {/* Churn Analysis */}
         <div className="mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">🔴 Churn Analyse</h3>
+          <h3 className="text-xl font-bold text-foreground mb-4">🔴 Churn Analyse</h3>
 
           <div className="grid gap-4 md:grid-cols-2">
             {/* Churn by Lifetime */}
@@ -294,7 +294,7 @@ export default function MemberInsightsPage() {
 
         {/* Member Profiles */}
         <div className="mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">👥 Medlem Profiler</h3>
+          <h3 className="text-xl font-bold text-foreground mb-4">👥 Medlem Profiler</h3>
 
           <div className="grid gap-4 md:grid-cols-2 mb-4">
             {/* Email Analysis */}
@@ -322,7 +322,7 @@ export default function MemberInsightsPage() {
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-                <p className="text-sm text-gray-600 text-center mt-2">
+                <p className="text-sm text-muted-foreground text-center mt-2">
                   {insights.memberProfiles.emailAnalysis.privatePercentage}% private emails
                 </p>
               </CardContent>
@@ -375,8 +375,8 @@ export default function MemberInsightsPage() {
 
         {/* Signup Timing Analysis */}
         <div className="mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">⏰ Hvornår tilmelder kunderne sig?</h3>
-          <p className="text-gray-600 mb-4">
+          <h3 className="text-xl font-bold text-foreground mb-4">⏰ Hvornår tilmelder kunderne sig?</h3>
+          <p className="text-muted-foreground mb-4">
             Brug denne data til at optimere timing af jeres annoncer
           </p>
 
@@ -396,7 +396,7 @@ export default function MemberInsightsPage() {
                     <Bar dataKey="signups" fill="#8b5cf6" />
                   </BarChart>
                 </ResponsiveContainer>
-                <p className="text-sm text-gray-600 text-center mt-2">
+                <p className="text-sm text-muted-foreground text-center mt-2">
                   Hvilke dage konverterer bedst?
                 </p>
               </CardContent>
@@ -429,7 +429,7 @@ export default function MemberInsightsPage() {
                     />
                   </LineChart>
                 </ResponsiveContainer>
-                <p className="text-sm text-gray-600 text-center mt-2">
+                <p className="text-sm text-muted-foreground text-center mt-2">
                   Hvornår på dagen er folk mest aktive?
                 </p>
               </CardContent>
@@ -438,7 +438,7 @@ export default function MemberInsightsPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-muted-foreground">
           Genereret: {new Date(insights.generatedAt).toLocaleString("da-DK")}
         </div>
       </main>

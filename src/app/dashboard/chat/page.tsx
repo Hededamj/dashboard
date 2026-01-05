@@ -7,17 +7,17 @@ import { Bot, Sparkles, Shield, Zap } from "lucide-react";
 
 export default function ChatPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <DashboardHeader />
 
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <Bot className="h-8 w-8 text-indigo-600" />
             MyMind
           </h2>
-          <p className="text-gray-600">Din personlige assistent til FamilyMind data</p>
+          <p className="text-muted-foreground">Din personlige assistent til FamilyMind data</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -37,36 +37,36 @@ export default function ChatPage() {
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div>
-                  <p className="font-medium text-gray-900">🔍 Medlemmer</p>
-                  <p className="text-gray-600 text-xs">
+                  <p className="font-medium text-foreground">🔍 Medlemmer</p>
+                  <p className="text-muted-foreground text-xs">
                     "Hvornår blev mette@gmail.com medlem?"
                   </p>
                 </div>
 
                 <div>
-                  <p className="font-medium text-gray-900">💰 Betalinger</p>
-                  <p className="text-gray-600 text-xs">
+                  <p className="font-medium text-foreground">💰 Betalinger</p>
+                  <p className="text-muted-foreground text-xs">
                     "Hvad får jeg udbetalt næste uge?"
                   </p>
                 </div>
 
                 <div>
-                  <p className="font-medium text-gray-900">📉 Churn</p>
-                  <p className="text-gray-600 text-xs">
+                  <p className="font-medium text-foreground">📉 Churn</p>
+                  <p className="text-muted-foreground text-xs">
                     "Hvem churned i december?"
                   </p>
                 </div>
 
                 <div>
-                  <p className="font-medium text-gray-900">📊 Metrics</p>
-                  <p className="text-gray-600 text-xs">
+                  <p className="font-medium text-foreground">📊 Metrics</p>
+                  <p className="text-muted-foreground text-xs">
                     "Hvad er min MRR og vækst rate?"
                   </p>
                 </div>
 
                 <div>
-                  <p className="font-medium text-gray-900">✨ Nye medlemmer</p>
-                  <p className="text-gray-600 text-xs">
+                  <p className="font-medium text-foreground">✨ Nye medlemmer</p>
+                  <p className="text-muted-foreground text-xs">
                     "Hvem har tilmeldt sig i sidste uge?"
                   </p>
                 </div>
@@ -80,7 +80,7 @@ export default function ChatPage() {
                   Powered by Claude AI
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-gray-600 space-y-2">
+              <CardContent className="text-xs text-muted-foreground space-y-2">
                 <p>
                   Bruger Claude Sonnet 4.5 til at forstå dine spørgsmål og hente data fra Stripe.
                 </p>
@@ -104,7 +104,7 @@ export default function ChatPage() {
                   API Key Required
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-gray-600 space-y-2">
+              <CardContent className="text-xs text-muted-foreground space-y-2">
                 <p>
                   For at bruge AI chat skal du tilføje din Anthropic API key:
                 </p>
@@ -116,7 +116,7 @@ export default function ChatPage() {
                 <pre className="bg-gray-900 text-white p-2 rounded text-xs overflow-x-auto">
                   ANTHROPIC_API_KEY=sk-ant-...
                 </pre>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   Genstart development server efter tilføjelse.
                 </p>
               </CardContent>

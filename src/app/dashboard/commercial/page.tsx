@@ -86,13 +86,13 @@ export default function CommercialInsightsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <DashboardHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mb-4"></div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Henter kommercielle data...</h2>
-            <p className="text-gray-600 text-center max-w-md">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mb-4"></div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">Henter kommercielle data...</h2>
+            <p className="text-muted-foreground text-center max-w-md">
               Henter udbetalinger, balance og revenue data fra Stripe
             </p>
           </div>
@@ -103,7 +103,7 @@ export default function CommercialInsightsPage() {
 
   if (error || !insights) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <DashboardHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center py-20">
@@ -137,70 +137,70 @@ export default function CommercialInsightsPage() {
     }));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <DashboardHeader />
 
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <DollarSign className="h-8 w-8 text-green-600" />
             Kommercielle Insights
           </h2>
-          <p className="text-gray-600">Udbetalinger, revenue og cash flow oversigt</p>
+          <p className="text-muted-foreground">Udbetalinger, revenue og cash flow oversigt</p>
         </div>
 
         {/* Top Stats */}
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Tilgængelig Balance</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Tilgængelig Balance</CardTitle>
               <Wallet className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 {insights.payouts.availableBalance.toLocaleString("da-DK")} kr.
               </div>
-              <p className="text-xs text-gray-500 mt-1">Klar til udbetaling</p>
+              <p className="text-xs text-muted-foreground mt-1">Klar til udbetaling</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Balance</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pending Balance</CardTitle>
               <Calendar className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 {insights.payouts.pendingBalance.toLocaleString("da-DK")} kr.
               </div>
-              <p className="text-xs text-gray-500 mt-1">Kommer snart</p>
+              <p className="text-xs text-muted-foreground mt-1">Kommer snart</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">MRR (Nuværende)</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">MRR (Nuværende)</CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 {insights.revenue.currentMRR.toLocaleString("da-DK")} kr.
               </div>
-              <p className="text-xs text-gray-500 mt-1">Månedlig recurring revenue</p>
+              <p className="text-xs text-muted-foreground mt-1">Månedlig recurring revenue</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Forventet Næste Måned</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Forventet Næste Måned</CardTitle>
               <ArrowUpRight className="h-4 w-4 text-indigo-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 {insights.revenue.projectedNextMonth.toLocaleString("da-DK")} kr.
               </div>
-              <p className="text-xs text-gray-500 mt-1">Baseret på nuværende MRR</p>
+              <p className="text-xs text-muted-foreground mt-1">Baseret på nuværende MRR</p>
             </CardContent>
           </Card>
         </div>
@@ -217,11 +217,11 @@ export default function CommercialInsightsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-center py-4">
-                <p className="text-sm text-gray-600 mb-2">Pending Balance</p>
+                <p className="text-sm text-muted-foreground mb-2">Pending Balance</p>
                 <p className="text-3xl font-bold text-green-600">
                   {insights.payouts.pendingBalance.toLocaleString("da-DK")} kr.
                 </p>
-                <p className="text-xs text-gray-500 mt-3">
+                <p className="text-xs text-muted-foreground mt-3">
                   Kommer inden for 1-7 dage
                 </p>
               </div>
@@ -238,26 +238,26 @@ export default function CommercialInsightsPage() {
             </CardHeader>
             <CardContent>
               {insights.payouts.upcomingPayouts.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">Ingen udbetalinger endnu</p>
+                <p className="text-muted-foreground text-center py-4">Ingen udbetalinger endnu</p>
               ) : (
                 <div className="space-y-3">
                   {insights.payouts.upcomingPayouts.slice(0, 3).map((payout) => (
                     <div key={payout.id} className="flex justify-between items-center border-b pb-2">
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-foreground">
                           {new Date(payout.arrivalDate).toLocaleDateString("da-DK", {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
                           })}
                         </p>
-                        <p className="text-xs text-gray-500 capitalize">{payout.status}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{payout.status}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-blue-600">
                           {payout.amount.toLocaleString("da-DK")} kr.
                         </p>
-                        <p className="text-xs text-gray-500">{payout.type}</p>
+                        <p className="text-xs text-muted-foreground">{payout.type}</p>
                       </div>
                     </div>
                   ))}
@@ -301,7 +301,7 @@ export default function CommercialInsightsPage() {
                 />
               </LineChart>
             </ResponsiveContainer>
-            <p className="text-xs text-gray-500 text-center mt-2">
+            <p className="text-xs text-muted-foreground text-center mt-2">
               Grøn = Faktisk historik | Lilla stiplet = Fremskrivning baseret på trend
             </p>
           </CardContent>
@@ -315,29 +315,29 @@ export default function CommercialInsightsPage() {
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="border-r pr-4">
-                <p className="text-sm text-gray-600 mb-1">Gns. Revenue/Måned (YTD)</p>
+                <p className="text-sm text-muted-foreground mb-1">Gns. Revenue/Måned (YTD)</p>
                 <p className="text-2xl font-bold text-blue-600">
                   {insights.transactions.avgRevenuePerMonthYTD.toLocaleString("da-DK")} kr.
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Total YTD: {insights.transactions.ytdRevenue.toLocaleString("da-DK")} kr.
                 </p>
               </div>
               <div className="border-r pr-4">
-                <p className="text-sm text-gray-600 mb-1">Projected 12 Måneder</p>
+                <p className="text-sm text-muted-foreground mb-1">Projected 12 Måneder</p>
                 <p className="text-2xl font-bold text-purple-600">
                   {insights.transactions.projectedRevenue12Months.toLocaleString("da-DK")} kr.
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Baseret på nuværende trend
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Vækst Rate</p>
+                <p className="text-sm text-muted-foreground mb-1">Vækst Rate</p>
                 <p className={`text-2xl font-bold ${insights.transactions.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {insights.transactions.growthRate > 0 ? '+' : ''}{insights.transactions.growthRate}%
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   YTD growth trend
                 </p>
               </div>
