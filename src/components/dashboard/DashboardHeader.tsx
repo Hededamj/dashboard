@@ -15,6 +15,20 @@ export function DashboardHeader() {
   const isCommercial = pathname?.includes("/commercial");
   const isChat = pathname?.includes("/chat");
 
+  const navItems = [
+    { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard", active: !isAnalytics && !isInsights && !isCommercial && !isChat },
+    { path: "/dashboard/analytics", icon: BarChart3, label: "Analytics", active: isAnalytics },
+    { path: "/dashboard/insights", icon: Users, label: "Insights", active: isInsights },
+    { path: "/dashboard/commercial", icon: DollarSign, label: "Commercial", active: isCommercial },
+    { path: "/dashboard/chat", icon: Bot, label: "MyMind", active: isChat },
+  ];
+
+  const activeItem = navItems.find(item => item.active);
+
+  const handleNavChange = (path: string) => {
+    router.push(path);
+  };
+
   return (
     <header className="border-b-2 border-border bg-card relative overflow-hidden">
       {/* Subtle background pattern */}
@@ -69,20 +83,36 @@ export function DashboardHeader() {
           </div>
         </div>
 
-        {/* Navigation Tabs - Horizontal scroll on mobile */}
-        <nav className="flex gap-1 border-t-2 border-border pt-3 sm:pt-4 -mb-4 sm:-mb-6 pb-4 sm:pb-6 overflow-x-auto scrollbar-hide">
-          {[
-            { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard", active: !isAnalytics && !isInsights && !isCommercial && !isChat },
-            { path: "/dashboard/analytics", icon: BarChart3, label: "Analytics", active: isAnalytics },
-            { path: "/dashboard/insights", icon: Users, label: "Insights", active: isInsights },
-            { path: "/dashboard/commercial", icon: DollarSign, label: "Commercial", active: isCommercial },
-            { path: "/dashboard/chat", icon: Bot, label: "MyMind", active: isChat },
-          ].map((item) => (
+        {/* Mobile Navigation - Dropdown */}
+        <div className="md:hidden border-t-2 border-border pt-4 -mb-4 pb-4">
+          <div className="relative">
+            <select
+              value={pathname || "/dashboard"}
+              onChange={(e) => handleNavChange(e.target.value)}
+              className="w-full appearance-none bg-background border-2 border-border text-foreground font-bold uppercase tracking-wide px-4 py-3 pr-10 text-sm hover:border-primary focus:border-primary focus:outline-none transition-all duration-300"
+            >
+              {navItems.map((item) => (
+                <option key={item.path} value={item.path}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Navigation - Horizontal Tabs */}
+        <nav className="hidden md:flex gap-1 border-t-2 border-border pt-4 -mb-6 pb-6">
+          {navItems.map((item) => (
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
               className={`
-                relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 text-xs md:text-sm font-bold uppercase tracking-wide whitespace-nowrap flex-shrink-0
+                relative flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-wide whitespace-nowrap
                 transition-all duration-300
                 ${item.active
                   ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
@@ -90,8 +120,8 @@ export function DashboardHeader() {
                 }
               `}
             >
-              <item.icon className="h-3.5 w-3.5 md:h-4 md:w-4" strokeWidth={2.5} />
-              <span className="hidden xs:inline">{item.label}</span>
+              <item.icon className="h-4 w-4" strokeWidth={2.5} />
+              <span>{item.label}</span>
               {item.active && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-secondary" />
               )}
