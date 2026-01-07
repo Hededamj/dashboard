@@ -10,8 +10,10 @@ import { RecentActivityTable } from "@/components/dashboard/RecentActivityTable"
 import { PeriodSelector, type PeriodType } from "@/components/dashboard/PeriodSelector";
 import { ExportButton } from "@/components/export/ExportButton";
 import type { DashboardMetrics, TrendData, ActivityEvent, AnalyticsMetrics } from "@/types";
-import { Users, DollarSign, TrendingDown, TrendingUp } from "lucide-react";
+import { Users, DollarSign, TrendingDown, TrendingUp, RefreshCw } from "lucide-react";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
+import { da } from "date-fns/locale";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -23,6 +25,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [checking2FA, setChecking2FA] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Check 2FA status on mount
   useEffect(() => {
@@ -46,44 +50,66 @@ export default function DashboardPage() {
     check2FAStatus();
   }, [router]);
 
+  // Fetch dashboard data
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [metricsRes, trendsRes, activityRes, analyticsRes] = await Promise.all([
+        fetch(`/api/metrics?period=${selectedPeriod}`),
+        fetch(`/api/trends?period=${selectedPeriod}`),
+        fetch("/api/activity"),
+        fetch("/api/analytics"),
+      ]);
+
+      if (!metricsRes.ok || !trendsRes.ok || !activityRes.ok) {
+        throw new Error("Failed to fetch dashboard data");
+      }
+
+      const [metricsData, trendsData, activityData, analyticsData] = await Promise.all([
+        metricsRes.json(),
+        trendsRes.json(),
+        activityRes.json(),
+        analyticsRes.ok ? analyticsRes.json() : null,
+      ]);
+
+      setMetrics(metricsData);
+      setTrends(trendsData);
+      setActivity(activityData);
+      setAnalytics(analyticsData);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError("Kunne ikke hente dashboard data. Prøv igen senere.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Refresh data (clear cache and fetch new)
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+
+      // Clear cache first
+      await fetch("/api/cache/clear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period: selectedPeriod }),
+      });
+
+      // Fetch fresh data
+      await fetchDashboardData();
+    } catch (err) {
+      console.error("Error refreshing dashboard:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     if (checking2FA) return; // Wait for 2FA check first
-
-    async function fetchDashboardData() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [metricsRes, trendsRes, activityRes, analyticsRes] = await Promise.all([
-          fetch(`/api/metrics?period=${selectedPeriod}`),
-          fetch(`/api/trends?period=${selectedPeriod}`),
-          fetch("/api/activity"),
-          fetch("/api/analytics"),
-        ]);
-
-        if (!metricsRes.ok || !trendsRes.ok || !activityRes.ok) {
-          throw new Error("Failed to fetch dashboard data");
-        }
-
-        const [metricsData, trendsData, activityData, analyticsData] = await Promise.all([
-          metricsRes.json(),
-          trendsRes.json(),
-          activityRes.json(),
-          analyticsRes.ok ? analyticsRes.json() : null,
-        ]);
-
-        setMetrics(metricsData);
-        setTrends(trendsData);
-        setActivity(activityData);
-        setAnalytics(analyticsData);
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setError("Kunne ikke hente dashboard data. Prøv igen senere.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchDashboardData();
   }, [selectedPeriod, checking2FA]);
 
@@ -147,13 +173,33 @@ export default function DashboardPage() {
               onPeriodChange={setSelectedPeriod}
             />
           </div>
-          {metrics && (
-            <ExportButton
-              dashboardMetrics={metrics}
-              analyticsMetrics={analytics || undefined}
-              period={selectedPeriod}
-            />
-          )}
+
+          <div className="flex items-center gap-3">
+            {/* Last Updated & Refresh Button */}
+            <div className="flex flex-col items-end">
+              {lastUpdated && (
+                <span className="text-xs text-muted-foreground font-mono-data">
+                  Opdateret: {formatDistanceToNow(lastUpdated, { addSuffix: true, locale: da })}
+                </span>
+              )}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center gap-2 px-4 py-2 bg-background border-2 border-border text-foreground font-semibold text-sm hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+                <span>{refreshing ? 'Opdaterer...' : 'Opdater'}</span>
+              </button>
+            </div>
+
+            {metrics && (
+              <ExportButton
+                dashboardMetrics={metrics}
+                analyticsMetrics={analytics || undefined}
+                period={selectedPeriod}
+              />
+            )}
+          </div>
         </div>
 
         {/* Metric Cards - Responsive grid */}

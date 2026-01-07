@@ -1,6 +1,6 @@
 import { kv } from "@vercel/kv";
 
-const DEFAULT_TTL_SECONDS = 30 * 60; // 30 minutes
+const DEFAULT_TTL_SECONDS = 2 * 60 * 60; // 2 hours (7200 seconds)
 
 // Helper function for cache-wrapped async operations using Vercel KV
 export async function withCache<T>(
@@ -30,6 +30,28 @@ export async function withCache<T>(
     console.error(`[Cache ERROR] ${key}:`, error);
     // If KV fails, just fetch the data without caching
     return await fetcher();
+  }
+}
+
+// Get cache timestamp (when data was last updated)
+export async function getCacheTimestamp(key: string): Promise<number | null> {
+  try {
+    const timestampKey = `cache:${key}:timestamp`;
+    const timestamp = await kv.get<number>(timestampKey);
+    return timestamp;
+  } catch (error) {
+    console.error(`[Cache TIMESTAMP ERROR] ${key}:`, error);
+    return null;
+  }
+}
+
+// Set cache timestamp
+export async function setCacheTimestamp(key: string): Promise<void> {
+  try {
+    const timestampKey = `cache:${key}:timestamp`;
+    await kv.set(timestampKey, Date.now());
+  } catch (error) {
+    console.error(`[Cache SET TIMESTAMP ERROR] ${key}:`, error);
   }
 }
 
