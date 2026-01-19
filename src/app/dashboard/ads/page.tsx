@@ -85,9 +85,9 @@ export default function AdsAnalysePage() {
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rawData = XLSX.utils.sheet_to_json(sheet);
+      const rawData = XLSX.utils.sheet_to_json(sheet) as Record<string, unknown>[];
 
-      const parsedData: AdData[] = rawData.map((row: Record<string, unknown>) => ({
+      const parsedData: AdData[] = rawData.map((row) => ({
         date: String(row["Reporting starts"] || ""),
         adName: String(row["Ad name"] || ""),
         platform: String(row["Platform"] || ""),
