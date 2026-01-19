@@ -3,7 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, BarChart3, LayoutDashboard, Users, DollarSign } from "lucide-react";
+import { LogOut, BarChart3, LayoutDashboard, Users, DollarSign, TrendingUp } from "lucide-react";
 
 export function DashboardHeader() {
   const { data: session } = useSession();
@@ -13,10 +13,12 @@ export function DashboardHeader() {
   const isAnalytics = pathname?.includes("/analytics");
   const isInsights = pathname?.includes("/insights");
   const isCommercial = pathname?.includes("/commercial");
+  const isAds = pathname?.includes("/ads");
 
   const navItems = [
-    { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard", active: !isAnalytics && !isInsights && !isCommercial },
+    { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard", active: !isAnalytics && !isInsights && !isCommercial && !isAds },
     { path: "/dashboard/analytics", icon: BarChart3, label: "Analytics", active: isAnalytics },
+    { path: "/dashboard/ads", icon: TrendingUp, label: "Ads", active: isAds },
     { path: "/dashboard/insights", icon: Users, label: "Insights", active: isInsights },
     { path: "/dashboard/commercial", icon: DollarSign, label: "Commercial", active: isCommercial },
   ];
